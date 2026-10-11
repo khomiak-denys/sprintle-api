@@ -12,11 +12,12 @@ namespace Workspaces.Application.Tests.Tasks.GetAll
     public class GetAllTasksQueryHandlerTests
     {
         private readonly FakeTaskRepository _repository = new();
+        private readonly FakeUsersApiClient _usersApiClient = new();
         private readonly GetAllTasksQueryHandler _handler;
 
         public GetAllTasksQueryHandlerTests()
         {
-            _handler = new GetAllTasksQueryHandler(_repository);
+            _handler = new GetAllTasksQueryHandler(_repository, _usersApiClient);
         }
 
         [Fact]

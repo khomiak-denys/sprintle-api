@@ -14,9 +14,9 @@ namespace Workspaces.Application.Tasks.GetMy
     internal sealed class GetMyTasksQueryHandler : IQueryHandler<GetMyTasksQuery, Result<PaginationResult<TaskResult>>>
     {
         private readonly ITaskRepository _taskRepository;
-        private readonly IUsersApiClient? _usersApiClient;
+        private readonly IUsersApiClient _usersApiClient;
 
-        public GetMyTasksQueryHandler(ITaskRepository taskRepository, IUsersApiClient? usersApiClient = null)
+        public GetMyTasksQueryHandler(ITaskRepository taskRepository, IUsersApiClient usersApiClient)
         {
             _taskRepository = taskRepository;
             _usersApiClient = usersApiClient;
@@ -45,22 +45,19 @@ namespace Workspaces.Application.Tasks.GetMy
                 cancellationToken);
 
             IReadOnlyDictionary<Guid, UserResult> assigneeMap = new Dictionary<Guid, UserResult>();
-            if (_usersApiClient is not null)
-            {
-                var distinctAssigneeIds = pagedTasks.Items
-                    .Where(t => t.AssigneeId.HasValue)
-                    .Select(t => t.AssigneeId!.Value)
-                    .Distinct()
-                    .ToList();
+            var distinctAssigneeIds = pagedTasks.Items
+                .Where(t => t.AssigneeId.HasValue)
+                .Select(t => t.AssigneeId!.Value)
+                .Distinct()
+                .ToList();
 
-                if (distinctAssigneeIds.Count > 0)
-                {
-                    assigneeMap = await _usersApiClient.GetBatchAsync(
-                        distinctAssigneeIds,
-                        1,
-                        Math.Clamp(distinctAssigneeIds.Count, 1, 100),
-                        cancellationToken);
-                }
+            if (distinctAssigneeIds.Count > 0)
+            {
+                assigneeMap = await _usersApiClient.GetBatchAsync(
+                    distinctAssigneeIds,
+                    1,
+                    Math.Clamp(distinctAssigneeIds.Count, 1, 100),
+                    cancellationToken);
             }
 
             var items = pagedTasks.Items
