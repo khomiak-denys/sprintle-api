@@ -40,6 +40,7 @@ namespace Workspaces.Domain.Tasks
 
         /// <summary>Returns a paginated list of tasks filtered by creator, assignee, or both, with optional additional filters.</summary>
         /// <param name="userId">The user identifier.</param>
+        /// <param name="workspaceId">Optional workspace identifier filter.</param>
         /// <param name="type">Filter type: "created", "assigned", "all", or null/empty for both.</param>
         /// <param name="search">Optional search term matching task title or description.</param>
         /// <param name="status">Optional task status.</param>
@@ -51,6 +52,7 @@ namespace Workspaces.Domain.Tasks
         /// <returns>Paginated result of tasks.</returns>
         Task<PaginationResult<TaskItem>> GetMyAsync(
             Guid userId,
+            Guid? workspaceId,
             string? type,
             string? search,
             TaskStatus? status,

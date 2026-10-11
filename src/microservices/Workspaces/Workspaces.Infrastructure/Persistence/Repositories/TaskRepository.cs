@@ -98,6 +98,7 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public async Task<PaginationResult<TaskItem>> GetMyAsync(
             Guid userId,
+            Guid? workspaceId,
             string? type,
             string? search,
             TaskStatus? status,
@@ -111,6 +112,11 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
                 .Include(t => t.TaskTags)
                     .ThenInclude(tt => tt.Tag)
                 .AsNoTracking();
+
+            if (workspaceId.HasValue && workspaceId.Value != Guid.Empty)
+            {
+                query = query.Where(t => t.WorkspaceId == workspaceId.Value);
+            }
 
             if (string.Equals(type, "created", StringComparison.OrdinalIgnoreCase))
             {

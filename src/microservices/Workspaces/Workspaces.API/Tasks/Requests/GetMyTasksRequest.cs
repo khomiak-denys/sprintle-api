@@ -5,6 +5,7 @@ namespace Workspaces.API.Tasks.Requests
     /// <summary>
     /// Request model for querying tasks associated with the current user with optional filters and pagination.
     /// </summary>
+    /// <param name="WorkspaceId">Optional workspace identifier filter.</param>
     /// <param name="Type">Optional filter type ('created', 'assigned', 'all', or null).</param>
     /// <param name="Search">Optional search term matching task title or description.</param>
     /// <param name="Status">Optional task status filter.</param>
@@ -13,6 +14,7 @@ namespace Workspaces.API.Tasks.Requests
     /// <param name="Page">The page number to retrieve (default is 1).</param>
     /// <param name="PageSize">The number of items per page (default is 10).</param>
     public record GetMyTasksRequest(
+        Guid? WorkspaceId = null,
         string? Type = null,
         string? Search = null,
         string? Status = null,
@@ -30,6 +32,7 @@ namespace Workspaces.API.Tasks.Requests
         {
             return new GetMyTasksQuery(
                 userId,
+                WorkspaceId,
                 Type,
                 Search,
                 Status,

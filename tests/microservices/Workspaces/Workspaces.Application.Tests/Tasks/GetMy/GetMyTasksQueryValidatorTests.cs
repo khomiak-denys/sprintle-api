@@ -122,5 +122,22 @@ namespace Workspaces.Application.Tests.Tasks.GetMy
             result.IsValid.Should().BeFalse();
             result.Errors.Should().Contain(e => e.PropertyName == nameof(GetMyTasksQuery.Priority));
         }
+
+        [Fact]
+        public void Validate_Should_Pass_When_WorkspaceIdIsValidOrOmitted()
+        {
+            var query = new GetMyTasksQuery(Guid.NewGuid(), WorkspaceId: Guid.NewGuid());
+            var result = _validator.Validate(query);
+            result.IsValid.Should().BeTrue();
+        }
+
+        [Fact]
+        public void Validate_Should_Fail_When_WorkspaceIdIsEmpty()
+        {
+            var query = new GetMyTasksQuery(Guid.NewGuid(), WorkspaceId: Guid.Empty);
+            var result = _validator.Validate(query);
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().Contain(e => e.PropertyName == nameof(GetMyTasksQuery.WorkspaceId));
+        }
     }
 }

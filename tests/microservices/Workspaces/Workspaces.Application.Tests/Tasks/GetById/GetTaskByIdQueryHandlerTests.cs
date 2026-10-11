@@ -140,6 +140,7 @@ namespace Workspaces.Application.Tests.Tasks.GetById
 
             public Task<PaginationResult<TaskItem>> GetMyAsync(
                 Guid userId,
+                Guid? workspaceId,
                 string? type,
                 string? search,
                 TaskStatus? status,
@@ -159,6 +160,19 @@ namespace Workspaces.Application.Tests.Tasks.GetById
             {
                 Users.TryGetValue(userId, out var user);
                 return Task.FromResult(user);
+            }
+
+            public Task<IReadOnlyDictionary<Guid, UserResult>> GetBatchAsync(
+                IReadOnlyCollection<Guid> userIds,
+                int page = 1,
+                int pageSize = 100,
+                CancellationToken cancellationToken = default)
+            {
+                IReadOnlyDictionary<Guid, UserResult> result = Users
+                    .Where(kvp => userIds.Contains(kvp.Key))
+                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                return Task.FromResult(result);
             }
         }
     }

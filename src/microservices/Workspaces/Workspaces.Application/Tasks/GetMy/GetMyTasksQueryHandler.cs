@@ -1,6 +1,7 @@
 using DomainFramework;
 using DomainFramework.Results;
 using Messaging.Abstractions;
+using Workspaces.Application.Abstractions;
 using Workspaces.Application.Tasks.DTOs;
 using Workspaces.Domain.Tasks;
 using TaskStatus = Workspaces.Domain.Tasks.TaskStatus;
@@ -13,10 +14,12 @@ namespace Workspaces.Application.Tasks.GetMy
     internal sealed class GetMyTasksQueryHandler : IQueryHandler<GetMyTasksQuery, Result<PaginationResult<TaskResult>>>
     {
         private readonly ITaskRepository _taskRepository;
+        private readonly IUsersApiClient _usersApiClient;
 
-        public GetMyTasksQueryHandler(ITaskRepository taskRepository)
+        public GetMyTasksQueryHandler(ITaskRepository taskRepository, IUsersApiClient usersApiClient)
         {
             _taskRepository = taskRepository;
+            _usersApiClient = usersApiClient;
         }
 
         public async Task<Result<PaginationResult<TaskResult>>> Handle(GetMyTasksQuery query, CancellationToken cancellationToken)
@@ -31,6 +34,7 @@ namespace Workspaces.Application.Tasks.GetMy
 
             var pagedTasks = await _taskRepository.GetMyAsync(
                 query.UserId,
+                query.WorkspaceId,
                 query.Type,
                 query.Search,
                 status,
@@ -39,6 +43,22 @@ namespace Workspaces.Application.Tasks.GetMy
                 query.Page,
                 query.PageSize,
                 cancellationToken);
+
+            IReadOnlyDictionary<Guid, UserResult> assigneeMap = new Dictionary<Guid, UserResult>();
+            var distinctAssigneeIds = pagedTasks.Items
+                .Where(t => t.AssigneeId.HasValue)
+                .Select(t => t.AssigneeId!.Value)
+                .Distinct()
+                .ToList();
+
+            if (distinctAssigneeIds.Count > 0)
+            {
+                assigneeMap = await _usersApiClient.GetBatchAsync(
+                    distinctAssigneeIds,
+                    1,
+                    Math.Clamp(distinctAssigneeIds.Count, 1, 100),
+                    cancellationToken);
+            }
 
             var items = pagedTasks.Items
                 .Select(task => new TaskResult(
@@ -49,11 +69,11 @@ namespace Workspaces.Application.Tasks.GetMy
                     task.Status,
                     task.Priority,
                     task.Deadline,
-                    task.AssigneeId,
                     task.TaskTags
                         .Where(tt => tt.Tag is not null)
                         .Select(tt => tt.Tag.Name)
-                        .ToList()))
+                        .ToList(),
+                    task.AssigneeId.HasValue && assigneeMap.TryGetValue(task.AssigneeId.Value, out var assignee) ? assignee : null))
                 .ToList();
 
             var result = PaginationResult<TaskResult>.Create(

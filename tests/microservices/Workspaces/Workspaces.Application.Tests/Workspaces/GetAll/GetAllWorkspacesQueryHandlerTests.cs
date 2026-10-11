@@ -115,7 +115,7 @@ namespace Workspaces.Application.Tests.Workspaces.GetAll
 
             public Task<TaskItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken) => Task.FromResult<TaskItem?>(null);
             public Task<PaginationResult<TaskItem>> GetAllAsync(Guid? workspaceId, string? search, TaskStatus? status, Priority? priority, Guid? assigneeId, Guid? createdById, string? tag, int page, int pageSize, CancellationToken cancellationToken) => Task.FromResult(PaginationResult<TaskItem>.Create(new List<TaskItem>(), 1, 10, 0));
-            public Task<PaginationResult<TaskItem>> GetMyAsync(Guid userId, string? type, string? search, TaskStatus? status, Priority? priority, string? tag, int page, int pageSize, CancellationToken cancellationToken) => Task.FromResult(PaginationResult<TaskItem>.Create(new List<TaskItem>(), 1, 10, 0));
+            public Task<PaginationResult<TaskItem>> GetMyAsync(Guid userId, Guid? workspaceId, string? type, string? search, TaskStatus? status, Priority? priority, string? tag, int page, int pageSize, CancellationToken cancellationToken) => Task.FromResult(PaginationResult<TaskItem>.Create(new List<TaskItem>(), 1, 10, 0));
             public Task AddAsync(TaskItem task, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task RemoveAsync(TaskItem task, CancellationToken cancellationToken) => Task.CompletedTask;
         }
