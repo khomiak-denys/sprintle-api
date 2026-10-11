@@ -1,5 +1,7 @@
 using DomainFramework;
 using FluentAssertions;
+using Workspaces.Application.Abstractions;
+using Workspaces.Application.Tasks.DTOs;
 using Workspaces.Application.Tasks.GetMy;
 using Workspaces.Domain.Tasks;
 using TaskStatus = Workspaces.Domain.Tasks.TaskStatus;
@@ -82,11 +84,26 @@ namespace Workspaces.Application.Tests.Tasks.GetMy
             _repository.LastPriority.Should().BeNull();
         }
 
+        [Fact]
+        public async Task Handle_Should_PassWorkspaceId_When_WorkspaceIdProvided()
+        {
+            var userId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            var query = new GetMyTasksQuery(userId, WorkspaceId: workspaceId);
+
+            var result = await _handler.Handle(query, CancellationToken.None);
+
+            result.IsSuccess.Should().BeTrue();
+            _repository.LastUserId.Should().Be(userId);
+            _repository.LastWorkspaceId.Should().Be(workspaceId);
+        }
+
         private sealed class FakeTaskRepository : ITaskRepository
         {
             public List<TaskItem> TasksToReturn { get; } = new();
 
             public Guid LastUserId { get; private set; }
+            public Guid? LastWorkspaceId { get; private set; }
             public string? LastType { get; private set; }
             public string? LastSearch { get; private set; }
             public TaskStatus? LastStatus { get; private set; }
@@ -97,6 +114,7 @@ namespace Workspaces.Application.Tests.Tasks.GetMy
 
             public Task<PaginationResult<TaskItem>> GetMyAsync(
                 Guid userId,
+                Guid? workspaceId,
                 string? type,
                 string? search,
                 TaskStatus? status,
@@ -107,6 +125,7 @@ namespace Workspaces.Application.Tests.Tasks.GetMy
                 CancellationToken cancellationToken)
             {
                 LastUserId = userId;
+                LastWorkspaceId = workspaceId;
                 LastType = type;
                 LastSearch = search;
                 LastStatus = status;
@@ -135,6 +154,54 @@ namespace Workspaces.Application.Tests.Tasks.GetMy
             public Task<TaskItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken) => Task.FromResult<TaskItem?>(null);
             public Task AddAsync(TaskItem task, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task RemoveAsync(TaskItem task, CancellationToken cancellationToken) => Task.CompletedTask;
+        }
+
+        [Fact]
+        public async Task Handle_Should_PopulateAssignees_ViaBatch_When_UsersApiClientProvided()
+        {
+            var userId = Guid.NewGuid();
+            var assigneeId = Guid.NewGuid();
+            var task = TaskItem.Create(Guid.NewGuid(), "Task with Assignee", "Desc", Priority.Medium, null, assigneeId, userId);
+            _repository.TasksToReturn.Add(task);
+
+            var fakeUsersClient = new FakeUsersApiClient();
+            fakeUsersClient.Users[assigneeId] = new UserResult(assigneeId, "assigned@test.com", "assignee", "Assignee User");
+
+            var handler = new GetMyTasksQueryHandler(_repository, fakeUsersClient);
+            var result = await handler.Handle(new GetMyTasksQuery(userId), CancellationToken.None);
+
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Items.Should().HaveCount(1);
+            result.Value.Items[0].Assignee.Should().NotBeNull();
+            result.Value.Items[0].Assignee!.Id.Should().Be(assigneeId);
+            result.Value.Items[0].Assignee!.UserName.Should().Be("assignee");
+            fakeUsersClient.BatchCallCount.Should().Be(1);
+        }
+
+        private sealed class FakeUsersApiClient : IUsersApiClient
+        {
+            public Dictionary<Guid, UserResult> Users { get; } = new();
+            public int BatchCallCount { get; private set; }
+
+            public Task<UserResult?> GetByIdAsync(Guid userId, CancellationToken cancellationToken)
+            {
+                Users.TryGetValue(userId, out var user);
+                return Task.FromResult(user);
+            }
+
+            public Task<IReadOnlyDictionary<Guid, UserResult>> GetBatchAsync(
+                IReadOnlyCollection<Guid> userIds,
+                int page = 1,
+                int pageSize = 100,
+                CancellationToken cancellationToken = default)
+            {
+                BatchCallCount++;
+                IReadOnlyDictionary<Guid, UserResult> result = Users
+                    .Where(kvp => userIds.Contains(kvp.Key))
+                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                return Task.FromResult(result);
+            }
         }
     }
 }

@@ -42,6 +42,10 @@ namespace Workspaces.Application.Tasks.GetMy
                            p.Equals("all", StringComparison.OrdinalIgnoreCase) ||
                            Enum.TryParse<Priority>(p, true, out _))
                 .WithMessage("Priority must be a valid priority or 'all'.");
+
+            RuleFor(x => x.WorkspaceId)
+                .Must(id => !id.HasValue || id.Value != Guid.Empty)
+                .WithMessage("WorkspaceId must not be empty when provided.");
         }
     }
 }

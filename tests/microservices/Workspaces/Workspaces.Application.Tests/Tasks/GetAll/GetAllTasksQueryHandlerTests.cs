@@ -1,5 +1,7 @@
 using DomainFramework;
 using FluentAssertions;
+using Workspaces.Application.Abstractions;
+using Workspaces.Application.Tasks.DTOs;
 using Workspaces.Application.Tasks.GetAll;
 using Workspaces.Domain.Tasks;
 using TaskStatus = Workspaces.Domain.Tasks.TaskStatus;
@@ -114,6 +116,27 @@ namespace Workspaces.Application.Tests.Tasks.GetAll
             _repository.LastAssigneeId.Should().BeNull();
         }
 
+        [Fact]
+        public async Task Handle_Should_PopulateAssignees_ViaBatch_When_UsersApiClientProvided()
+        {
+            var assigneeId = Guid.NewGuid();
+            var task = TaskItem.Create(Guid.NewGuid(), "Task with Assignee", "Desc", Priority.Low, null, assigneeId, Guid.NewGuid());
+            _repository.TasksToReturn.Add(task);
+
+            var fakeUsersClient = new FakeUsersApiClient();
+            fakeUsersClient.Users[assigneeId] = new UserResult(assigneeId, "user@test.com", "testuser", "Test User");
+
+            var handler = new GetAllTasksQueryHandler(_repository, fakeUsersClient);
+            var result = await handler.Handle(new GetAllTasksQuery(), CancellationToken.None);
+
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Items.Should().HaveCount(1);
+            result.Value.Items[0].Assignee.Should().NotBeNull();
+            result.Value.Items[0].Assignee!.Id.Should().Be(assigneeId);
+            result.Value.Items[0].Assignee!.UserName.Should().Be("testuser");
+            fakeUsersClient.BatchCallCount.Should().Be(1);
+        }
+
         private sealed class FakeTaskRepository : ITaskRepository
         {
             public List<TaskItem> TasksToReturn { get; } = new();
@@ -156,6 +179,7 @@ namespace Workspaces.Application.Tests.Tasks.GetAll
 
             public Task<PaginationResult<TaskItem>> GetMyAsync(
                 Guid userId,
+                Guid? workspaceId,
                 string? type,
                 string? search,
                 TaskStatus? status,
@@ -169,6 +193,32 @@ namespace Workspaces.Application.Tests.Tasks.GetAll
             public Task<TaskItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken) => Task.FromResult<TaskItem?>(null);
             public Task AddAsync(TaskItem task, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task RemoveAsync(TaskItem task, CancellationToken cancellationToken) => Task.CompletedTask;
+        }
+
+        private sealed class FakeUsersApiClient : IUsersApiClient
+        {
+            public Dictionary<Guid, UserResult> Users { get; } = new();
+            public int BatchCallCount { get; private set; }
+
+            public Task<UserResult?> GetByIdAsync(Guid userId, CancellationToken cancellationToken)
+            {
+                Users.TryGetValue(userId, out var user);
+                return Task.FromResult(user);
+            }
+
+            public Task<IReadOnlyDictionary<Guid, UserResult>> GetBatchAsync(
+                IReadOnlyCollection<Guid> userIds,
+                int page = 1,
+                int pageSize = 100,
+                CancellationToken cancellationToken = default)
+            {
+                BatchCallCount++;
+                IReadOnlyDictionary<Guid, UserResult> result = Users
+                    .Where(kvp => userIds.Contains(kvp.Key))
+                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                return Task.FromResult(result);
+            }
         }
     }
 }

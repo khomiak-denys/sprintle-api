@@ -9,6 +9,7 @@ namespace Workspaces.Application.Tasks.GetMy
     /// Query to retrieve tasks assigned to or created by the requesting user, with optional filters.
     /// </summary>
     /// <param name="UserId">The id of the user.</param>
+    /// <param name="WorkspaceId">Optional workspace identifier filter.</param>
     /// <param name="Type">The filter type ('created', 'assigned', 'all', or null for all).</param>
     /// <param name="Search">Optional search term matching task title or description.</param>
     /// <param name="Status">Optional status filter (e.g. 'Todo', 'InProgress', 'InReview', 'Done', 'Cancelled', or 'all').</param>
@@ -18,6 +19,7 @@ namespace Workspaces.Application.Tasks.GetMy
     /// <param name="PageSize">The page size.</param>
     public record GetMyTasksQuery(
         Guid UserId,
+        Guid? WorkspaceId = null,
         string? Type = null,
         string? Search = null,
         string? Status = null,

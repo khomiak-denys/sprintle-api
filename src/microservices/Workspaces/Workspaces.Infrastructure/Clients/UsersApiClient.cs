@@ -48,5 +48,63 @@ namespace Workspaces.Infrastructure.Clients
                 return null;
             }
         }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyDictionary<Guid, UserResult>> GetBatchAsync(
+            IReadOnlyCollection<Guid> userIds,
+            int page = 1,
+            int pageSize = 100,
+            CancellationToken cancellationToken = default)
+        {
+            if (userIds == null || userIds.Count == 0)
+            {
+                return new Dictionary<Guid, UserResult>();
+            }
+
+            var distinctIds = userIds.Distinct().ToList();
+            var effectivePage = Math.Max(1, page);
+            var effectivePageSize = Math.Clamp(pageSize, 1, 100);
+
+            using var request = new HttpRequestMessage(
+                HttpMethod.Post,
+                $"api/v1/private-integrations/users/batch?page={effectivePage}&pageSize={effectivePageSize}")
+            {
+                Content = JsonContent.Create(new UsersBatchRequest(distinctIds))
+            };
+
+            if (!string.IsNullOrWhiteSpace(_apiKeyOptions.Value.ApiKey))
+            {
+                request.Headers.Add(ApiKeyHeader, _apiKeyOptions.Value.ApiKey);
+            }
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new Dictionary<Guid, UserResult>();
+            }
+
+            try
+            {
+                var pagedUsers = await response.Content.ReadFromJsonAsync<UsersBatchResponse>(cancellationToken);
+                var resultDictionary = new Dictionary<Guid, UserResult>();
+                if (pagedUsers?.Items is not null)
+                {
+                    foreach (var user in pagedUsers.Items)
+                    {
+                        resultDictionary[user.Id] = user;
+                    }
+                }
+
+                return resultDictionary;
+            }
+            catch
+            {
+                return new Dictionary<Guid, UserResult>();
+            }
+        }
+
+        private sealed record UsersBatchRequest(IReadOnlyList<Guid> UserIds);
+
+        private sealed record UsersBatchResponse(IReadOnlyList<UserResult>? Items);
     }
 }
