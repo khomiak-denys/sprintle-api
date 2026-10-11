@@ -39,7 +39,7 @@ namespace Workspaces.Infrastructure
 
             services.AddHttpClient<IUsersApiClient, UsersApiClient>(client =>
             {
-                client.BaseAddress = new Uri(configuration["Microservices:UsersApi"]
+                client.BaseAddress = new Uri(configuration["UsersApi:BaseUrl"]
                     ?? throw new InvalidOperationException("UsersApi URL is not configured."));
             });
 
