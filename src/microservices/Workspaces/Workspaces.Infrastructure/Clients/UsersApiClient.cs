@@ -54,6 +54,7 @@ namespace Workspaces.Infrastructure.Clients
             IReadOnlyCollection<Guid> userIds,
             int page = 1,
             int pageSize = 100,
+            string? search = null,
             CancellationToken cancellationToken = default)
         {
             if (userIds == null || userIds.Count == 0)
@@ -65,9 +66,15 @@ namespace Workspaces.Infrastructure.Clients
             var effectivePage = Math.Max(1, page);
             var effectivePageSize = Math.Clamp(pageSize, 1, 100);
 
+            var endpoint = $"api/v1/private-integrations/users/batch?page={effectivePage}&pageSize={effectivePageSize}";
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                endpoint += $"&search={Uri.EscapeDataString(search.Trim())}";
+            }
+
             using var request = new HttpRequestMessage(
                 HttpMethod.Post,
-                $"api/v1/private-integrations/users/batch?page={effectivePage}&pageSize={effectivePageSize}")
+                endpoint)
             {
                 Content = JsonContent.Create(new UsersBatchRequest(distinctIds))
             };
