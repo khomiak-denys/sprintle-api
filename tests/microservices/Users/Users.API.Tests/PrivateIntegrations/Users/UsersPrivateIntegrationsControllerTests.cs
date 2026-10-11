@@ -36,7 +36,7 @@ namespace Users.API.Tests.PrivateIntegrations.Users
             var request = new GetUsersBatchRequest(new[] { userId });
 
             // Act
-            var actionResult = await _controller.GetBatchContactInfo(request, page: 1, pageSize: 10, CancellationToken.None);
+            var actionResult = await _controller.GetBatchContactInfo(request, page: 1, pageSize: 10, ct: CancellationToken.None);
 
             // Assert
             var okResult = actionResult.Should().BeOfType<OkObjectResult>().Subject;
@@ -44,6 +44,32 @@ namespace Users.API.Tests.PrivateIntegrations.Users
             response.TotalCount.Should().Be(1);
             response.Items.Should().HaveCount(1);
             response.Items[0].Id.Should().Be(userId);
+        }
+
+        [Fact]
+        public async Task GetBatchContactInfo_Should_PassSearchParameterToQuery_When_SearchProvided()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var contactInfo = new UserContactInfoResult(userId, "test@example.com", "testuser", "Test User");
+            var paged = PaginationResult<UserContactInfoResult>.Create(new[] { contactInfo }, 1, 10, 1);
+
+            _sender.BatchResult = Result<PaginationResult<UserContactInfoResult>>.Success(paged);
+
+            var request = new GetUsersBatchRequest(new[] { userId });
+
+            // Act
+            var actionResult = await _controller.GetBatchContactInfo(
+                request,
+                search: "test",
+                page: 1,
+                pageSize: 10,
+                ct: CancellationToken.None);
+
+            // Assert
+            actionResult.Should().BeOfType<OkObjectResult>();
+            _sender.LastBatchQuery.Should().NotBeNull();
+            _sender.LastBatchQuery!.Search.Should().Be("test");
         }
 
         [Fact]
@@ -56,7 +82,7 @@ namespace Users.API.Tests.PrivateIntegrations.Users
             var request = new GetUsersBatchRequest(Array.Empty<Guid>());
 
             // Act
-            var actionResult = await _controller.GetBatchContactInfo(request, page: 1, pageSize: 10, CancellationToken.None);
+            var actionResult = await _controller.GetBatchContactInfo(request, page: 1, pageSize: 10, ct: CancellationToken.None);
 
             // Assert
             var badRequestResult = actionResult.Should().BeOfType<ObjectResult>().Subject;
@@ -99,11 +125,13 @@ namespace Users.API.Tests.PrivateIntegrations.Users
         {
             public Result<PaginationResult<UserContactInfoResult>>? BatchResult { get; set; }
             public Result<UserContactInfoResult>? SingleResult { get; set; }
+            public GetUsersBatchQuery? LastBatchQuery { get; private set; }
 
             public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
             {
-                if (request is GetUsersBatchQuery && BatchResult != null)
+                if (request is GetUsersBatchQuery batchQuery && BatchResult != null)
                 {
+                    LastBatchQuery = batchQuery;
                     return Task.FromResult((TResponse)(object)BatchResult);
                 }
 
