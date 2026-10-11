@@ -1,27 +1,45 @@
-﻿namespace MessageBus;
+using MassTransit;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
-public static class MessageBusExtensions
+namespace MessageBus
 {
-    public static IServiceCollection AddMessageBus(this IServiceCollection services,
-        IConfiguration configuration,
-        Action<IBusRegistrationConfigurator>? configureConsumers = null)
+    /// <summary>
+    /// Provides extension methods for configuring MassTransit with RabbitMQ.
+    /// </summary>
+    public static class MessageBusExtensions
     {
-        services.AddMassTransit(busConfig =>
+        /// <summary>
+        /// Registers MassTransit with RabbitMQ using the connection string configured for the application.
+        /// </summary>
+        /// <param name="services">The service collection to register dependencies into.</param>
+        /// <param name="configuration">The configuration provider to retrieve connection settings from.</param>
+        /// <param name="configureConsumers">An optional action to configure consumers on the bus.</param>
+        /// <returns>The updated <see cref="IServiceCollection"/>.</returns>
+        public static IServiceCollection AddMessageBus(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            Action<IBusRegistrationConfigurator>? configureConsumers = null)
         {
-            busConfig.SetKebabCaseEndpointNameFormatter();
-
-            configureConsumers?.Invoke(busConfig);
-
-            busConfig.UsingRabbitMq((context, cfg) =>
+            services.AddMassTransit(busConfig =>
             {
-                cfg.Host(new Uri(configuration["RabbitMq"]!), host =>
-                {
-                    host.Username(configuration["RabbitMq:UserName"]!);
-                    host.Password(configuration["RabbitMq:Password"]!);
-                });
+                busConfig.SetKebabCaseEndpointNameFormatter();
 
-                cfg.ConfigureEndpoints(context);
+                configureConsumers?.Invoke(busConfig);
+
+                busConfig.UsingRabbitMq((context, cfg) =>
+                {
+                    var connectionString = configuration.GetConnectionString("message-bus");
+                    if (!string.IsNullOrWhiteSpace(connectionString))
+                    {
+                        cfg.Host(connectionString);
+                    }
+
+                    cfg.ConfigureEndpoints(context);
+                });
             });
-        });
+
+            return services;
+        }
     }
 }
