@@ -112,12 +112,36 @@ namespace Users.Application.Tests.Users.GetContactInfoBatch
             resultPage2.Value.Items.Should().NotIntersectWith(resultPage1.Value.Items);
         }
 
+        [Fact]
+        public async Task Handle_Should_FilterBySearch_When_SearchProvided()
+        {
+            // Arrange
+            var user1Id = Guid.NewGuid();
+            var user2Id = Guid.NewGuid();
+            var contact1 = new UserContactInfoResult(user1Id, "alice@example.com", "alice", "Alice Smith");
+            var contact2 = new UserContactInfoResult(user2Id, "bob@example.com", "bob", "Bob Jones");
+
+            _userService.Users[user1Id] = contact1;
+            _userService.Users[user2Id] = contact2;
+
+            var query = new GetUsersBatchQuery(new[] { user1Id, user2Id }, Search: "alice", Page: 1, PageSize: 10);
+
+            // Act
+            var result = await _handler.Handle(query, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Value.TotalCount.Should().Be(1);
+            result.Value.Items.Should().ContainSingle(u => u.Id == user1Id);
+        }
+
         private sealed class FakeUserService : IUserService
         {
             public Dictionary<Guid, UserContactInfoResult> Users { get; } = new();
 
             public Task<Result<PaginationResult<UserContactInfoResult>>> GetContactInfoBatchAsync(
                 IReadOnlyCollection<Guid> userIds,
+                string? search,
                 int page,
                 int pageSize,
                 CancellationToken ct)
@@ -131,16 +155,27 @@ namespace Users.Application.Tests.Users.GetContactInfoBatch
                 var matched = userIds
                     .Distinct()
                     .Where(id => Users.ContainsKey(id))
-                    .Select(id => Users[id])
+                    .Select(id => Users[id]);
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    var term = search.Trim();
+                    matched = matched.Where(u =>
+                        (!string.IsNullOrEmpty(u.UserName) && u.UserName.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(u.FullName) && u.FullName.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(u.Email) && u.Email.Contains(term, StringComparison.OrdinalIgnoreCase)));
+                }
+
+                var matchedList = matched
                     .OrderBy(u => u.UserName)
                     .ToList();
 
-                var paged = matched
+                var paged = matchedList
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .ToList();
 
-                var result = PaginationResult<UserContactInfoResult>.Create(paged, page, pageSize, matched.Count);
+                var result = PaginationResult<UserContactInfoResult>.Create(paged, page, pageSize, matchedList.Count);
                 return Task.FromResult(Result<PaginationResult<UserContactInfoResult>>.Success(result));
             }
 

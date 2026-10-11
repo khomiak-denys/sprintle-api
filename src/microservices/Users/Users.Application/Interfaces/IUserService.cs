@@ -17,15 +17,17 @@ namespace Users.Application.Interfaces
         Task<Result<UserContactInfoResult>> GetContactInfoByIdAsync(Guid userId, CancellationToken ct);
 
         /// <summary>
-        /// Retrieves paginated contact information for a collection of user identifiers.
+        /// Retrieves paginated contact information for a collection of user identifiers with optional search filter.
         /// </summary>
         /// <param name="userIds">The collection of user identifiers.</param>
+        /// <param name="search">Optional search term matching username, full name, or email.</param>
         /// <param name="page">The page number.</param>
         /// <param name="pageSize">The page size.</param>
         /// <param name="ct">The cancellation token.</param>
         /// <returns>A paginated list of user contact information.</returns>
         Task<Result<PaginationResult<UserContactInfoResult>>> GetContactInfoBatchAsync(
             IReadOnlyCollection<Guid> userIds,
+            string? search,
             int page,
             int pageSize,
             CancellationToken ct);

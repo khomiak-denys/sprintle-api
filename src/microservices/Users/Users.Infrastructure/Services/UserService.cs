@@ -64,6 +64,7 @@ namespace Users.Infrastructure.Services
 
         public async Task<Result<PaginationResult<UserContactInfoResult>>> GetContactInfoBatchAsync(
             IReadOnlyCollection<Guid> userIds,
+            string? search,
             int page,
             int pageSize,
             CancellationToken ct)
@@ -86,6 +87,15 @@ namespace Users.Infrastructure.Services
             var query = _dbContext.Users
                 .AsNoTracking()
                 .Where(u => distinctIds.Contains(u.Id));
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+                query = query.Where(u =>
+                    (u.UserName != null && EF.Functions.ILike(u.UserName, $"%{term}%")) ||
+                    (u.FullName != null && EF.Functions.ILike(u.FullName, $"%{term}%")) ||
+                    (u.Email != null && EF.Functions.ILike(u.Email, $"%{term}%")));
+            }
 
             var totalCount = await query.CountAsync(ct);
 

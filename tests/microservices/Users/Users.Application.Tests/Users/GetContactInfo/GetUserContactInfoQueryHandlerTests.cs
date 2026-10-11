@@ -76,6 +76,7 @@ namespace Users.Application.Tests.Users.GetContactInfo
 
             public Task<Result<PaginationResult<UserContactInfoResult>>> GetContactInfoBatchAsync(
                 IReadOnlyCollection<Guid> userIds,
+                string? search,
                 int page,
                 int pageSize,
                 CancellationToken ct) =>

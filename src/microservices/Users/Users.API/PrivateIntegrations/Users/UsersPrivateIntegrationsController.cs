@@ -55,6 +55,7 @@ namespace Users.API.PrivateIntegrations.Users
         /// Retrieves paginated user contact information for a batch of user identifiers.
         /// </summary>
         /// <param name="request">The batch request containing user identifiers.</param>
+        /// <param name="search">Optional search filter across username, full name, or email.</param>
         /// <param name="page">The page number (1-based).</param>
         /// <param name="pageSize">The number of items per page.</param>
         /// <param name="ct">The cancellation token.</param>
@@ -66,12 +67,13 @@ namespace Users.API.PrivateIntegrations.Users
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetBatchContactInfo(
             [FromBody] GetUsersBatchRequest request,
+            [FromQuery] string? search = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
             CancellationToken ct = default)
         {
             var userIds = request?.UserIds ?? Array.Empty<Guid>();
-            var query = new GetUsersBatchQuery(userIds, page, pageSize);
+            var query = new GetUsersBatchQuery(userIds, search, page, pageSize);
             var result = await _sender.Send(query, ct);
 
             return result.Match(Ok(result.Value), error => this.ToActionResult(error));
