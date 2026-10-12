@@ -4,6 +4,7 @@ using Messaging.Abstractions;
 using Workspaces.Application.Abstractions;
 using Workspaces.Application.Tasks.DTOs;
 using Workspaces.Domain.Tasks;
+using Workspaces.Domain.Workspaces;
 
 namespace Workspaces.Application.Tasks.GetById
 {
@@ -13,11 +14,16 @@ namespace Workspaces.Application.Tasks.GetById
     internal sealed class GetTaskByIdQueryHandler : IQueryHandler<GetTaskByIdQuery, Result<TaskDetailsResult>>
     {
         private readonly ITaskRepository _taskRepository;
+        private readonly IWorkspaceRepository _workspaceRepository;
         private readonly IUsersApiClient _usersApiClient;
 
-        public GetTaskByIdQueryHandler(ITaskRepository taskRepository, IUsersApiClient usersApiClient)
+        public GetTaskByIdQueryHandler(
+            ITaskRepository taskRepository,
+            IWorkspaceRepository workspaceRepository,
+            IUsersApiClient usersApiClient)
         {
             _taskRepository = taskRepository;
+            _workspaceRepository = workspaceRepository;
             _usersApiClient = usersApiClient;
         }
 
@@ -29,9 +35,13 @@ namespace Workspaces.Application.Tasks.GetById
                 return Result<TaskDetailsResult>.Failure(new NotFoundError($"Task '{query.TaskId}' was not found."));
             }
 
-            if (!query.IsAdmin && task.CreatedById != query.RequestingUserId && task.AssigneeId != query.RequestingUserId)
+            if (!query.IsAdmin)
             {
-                return Result<TaskDetailsResult>.Failure(new ForbiddenError("You are not allowed to view this task."));
+                var isMember = await _workspaceRepository.IsMemberAsync(task.WorkspaceId, query.RequestingUserId, cancellationToken);
+                if (!isMember)
+                {
+                    return Result<TaskDetailsResult>.Failure(new ForbiddenError("You are not allowed to view this task."));
+                }
             }
 
             var tags = task.TaskTags
