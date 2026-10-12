@@ -1,6 +1,7 @@
 using DomainFramework;
 using DomainFramework.Errors;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Workspaces.Application.Abstractions;
 using Workspaces.Application.Tasks.DTOs;
 using Workspaces.Application.Workspaces.DTOs;
@@ -18,7 +19,7 @@ namespace Workspaces.Application.Tests.Workspaces.Members.GetPotentialMembers
 
         public GetPotentialWorkspaceMembersQueryHandlerTests()
         {
-            _handler = new GetPotentialWorkspaceMembersQueryHandler(_workspaceRepository, _usersApiClient);
+            _handler = new GetPotentialWorkspaceMembersQueryHandler(_workspaceRepository, _usersApiClient, NullLogger<GetPotentialWorkspaceMembersQueryHandler>.Instance);
         }
 
         [Fact]

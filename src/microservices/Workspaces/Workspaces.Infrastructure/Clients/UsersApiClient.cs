@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ServiceDefaults.Authorization.IntegrationApiKey;
 using Workspaces.Application.Abstractions;
@@ -9,18 +10,27 @@ namespace Workspaces.Infrastructure.Clients
     /// <summary>
     /// HTTP client implementation for communicating with the Users microservice.
     /// </summary>
-    public class UsersApiClient : IUsersApiClient
+    public partial class UsersApiClient : IUsersApiClient
     {
         private const string ApiKeyHeader = "X-API-Key";
         private readonly HttpClient _httpClient;
         private readonly IOptions<IntegrationApiKeyOptions> _apiKeyOptions;
+        private readonly ILogger<UsersApiClient> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UsersApiClient"/> class.
+        /// </summary>
+        /// <param name="httpClient">The HTTP client.</param>
+        /// <param name="apiKeyOptions">Options containing the internal API key.</param>
+        /// <param name="logger">The logger instance.</param>
         public UsersApiClient(
             HttpClient httpClient,
-            IOptions<IntegrationApiKeyOptions> apiKeyOptions)
+            IOptions<IntegrationApiKeyOptions> apiKeyOptions,
+            ILogger<UsersApiClient> logger)
         {
             _httpClient = httpClient;
             _apiKeyOptions = apiKeyOptions;
+            _logger = logger;
         }
 
         /// <inheritdoc />
@@ -36,6 +46,7 @@ namespace Workspaces.Infrastructure.Clients
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
+                LogGetContactInfoFailed(userId, (int)response.StatusCode);
                 return null;
             }
 
@@ -43,8 +54,9 @@ namespace Workspaces.Infrastructure.Clients
             {
                 return await response.Content.ReadFromJsonAsync<UserResult>(cancellationToken);
             }
-            catch
+            catch (Exception ex)
             {
+                LogDeserializeContactInfoFailed(ex, userId);
                 return null;
             }
         }
@@ -96,6 +108,7 @@ namespace Workspaces.Infrastructure.Clients
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
+                LogGetBatchFailed((int)response.StatusCode);
                 return new Dictionary<Guid, UserResult>();
             }
 
@@ -113,11 +126,24 @@ namespace Workspaces.Infrastructure.Clients
 
                 return resultDictionary;
             }
-            catch
+            catch (Exception ex)
             {
+                LogDeserializeBatchFailed(ex);
                 return new Dictionary<Guid, UserResult>();
             }
         }
+
+        [LoggerMessage(Level = LogLevel.Warning, Message = "Failed to retrieve contact info for user '{UserId}' from Users API. StatusCode: {StatusCode}")]
+        private partial void LogGetContactInfoFailed(Guid userId, int statusCode);
+
+        [LoggerMessage(Level = LogLevel.Warning, Message = "Failed to deserialize contact info for user '{UserId}' from Users API.")]
+        private partial void LogDeserializeContactInfoFailed(Exception ex, Guid userId);
+
+        [LoggerMessage(Level = LogLevel.Warning, Message = "Failed to retrieve batch users from Users API. StatusCode: {StatusCode}")]
+        private partial void LogGetBatchFailed(int statusCode);
+
+        [LoggerMessage(Level = LogLevel.Warning, Message = "Failed to deserialize batch users response from Users API.")]
+        private partial void LogDeserializeBatchFailed(Exception ex);
 
         private sealed record UsersBatchRequest(IReadOnlyList<Guid> UserIds);
 
