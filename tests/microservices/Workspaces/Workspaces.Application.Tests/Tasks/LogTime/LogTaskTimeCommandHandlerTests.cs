@@ -39,7 +39,7 @@ namespace Workspaces.Application.Tests.Tasks.LogTime
         {
             // Arrange
             var userId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, userId);
+            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, userId, userId);
             _taskRepository.TaskToReturn = task;
 
             var command = new LogTaskTimeCommand(task.Id, userId, 90, "Finished feature", DateOnly.FromDateTime(DateTime.UtcNow));
@@ -52,6 +52,47 @@ namespace Workspaces.Application.Tests.Tasks.LogTime
             task.TimeLogs.Should().ContainSingle(tl => tl.MinutesSpent == 90 && tl.Description == "Finished feature" && tl.UserId == userId);
             _taskRepository.AddedTimeLogs.Should().ContainSingle(tl => tl.MinutesSpent == 90 && tl.Description == "Finished feature");
             _uow.SaveCount.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task Handle_Should_ReturnForbidden_When_UserIsNotAssignedUser()
+        {
+            // Arrange
+            var assigneeId = Guid.NewGuid();
+            var otherUserId = Guid.NewGuid();
+            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, assigneeId, Guid.NewGuid());
+            _taskRepository.TaskToReturn = task;
+
+            var command = new LogTaskTimeCommand(task.Id, otherUserId, 60, "Work by other user", DateOnly.FromDateTime(DateTime.UtcNow));
+
+            // Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            result.IsFailure.Should().BeTrue();
+            result.Error.Should().BeOfType<ForbiddenError>();
+            result.Error.Message.Should().Be("Only the assigned user can log time on this task.");
+            _uow.SaveCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task Handle_Should_ReturnForbidden_When_TaskHasNoAssignee()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, userId);
+            _taskRepository.TaskToReturn = task;
+
+            var command = new LogTaskTimeCommand(task.Id, userId, 60, "Work on unassigned task", DateOnly.FromDateTime(DateTime.UtcNow));
+
+            // Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            result.IsFailure.Should().BeTrue();
+            result.Error.Should().BeOfType<ForbiddenError>();
+            result.Error.Message.Should().Be("Only the assigned user can log time on this task.");
+            _uow.SaveCount.Should().Be(0);
         }
 
         private sealed class FakeUnitOfWork : IUnitOfWork

@@ -227,6 +227,13 @@ namespace Workspaces.Application.Tests.Workspaces.Members.GetMembers
                 Workspaces.Remove(workspace);
                 return Task.CompletedTask;
             }
+
+            public Task<bool> IsMemberAsync(Guid workspaceId, Guid userId, CancellationToken cancellationToken)
+            {
+                var ws = Workspaces.FirstOrDefault(w => w.Id == workspaceId);
+                if (ws is null) return Task.FromResult(false);
+                return Task.FromResult(ws.OwnerId == userId || ws.Members.Any(m => m.UserId == userId));
+            }
         }
 
         [Fact]

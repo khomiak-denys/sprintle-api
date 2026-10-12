@@ -1,8 +1,10 @@
+using DomainFramework;
 using DomainFramework.Errors;
 using FluentAssertions;
 using Workspaces.Application.Abstractions;
 using Workspaces.Application.Tasks.AddComment;
 using Workspaces.Domain.Tasks;
+using Workspaces.Domain.Workspaces;
 using TaskStatus = Workspaces.Domain.Tasks.TaskStatus;
 using Xunit;
 
@@ -12,11 +14,12 @@ namespace Workspaces.Application.Tests.Tasks.AddComment
     {
         private readonly FakeUnitOfWork _uow = new();
         private readonly FakeTaskRepository _taskRepository = new();
+        private readonly FakeWorkspaceRepository _workspaceRepository = new();
         private readonly AddCommentCommandHandler _handler;
 
         public AddCommentCommandHandlerTests()
         {
-            _handler = new AddCommentCommandHandler(_uow, _taskRepository);
+            _handler = new AddCommentCommandHandler(_uow, _taskRepository, _workspaceRepository);
         }
 
         [Fact]
@@ -35,7 +38,7 @@ namespace Workspaces.Application.Tests.Tasks.AddComment
         }
 
         [Fact]
-        public async Task Handle_Should_ReturnForbidden_When_UserIsNotCreatorAssigneeOrAdmin()
+        public async Task Handle_Should_ReturnForbidden_When_UserIsNotWorkspaceMemberAndNotAdmin()
         {
             // Arrange
             var creatorId = Guid.NewGuid();
@@ -62,6 +65,7 @@ namespace Workspaces.Application.Tests.Tasks.AddComment
             var creatorId = Guid.NewGuid();
             var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
+            _workspaceRepository.Members.Add((task.WorkspaceId, creatorId));
 
             var command = new AddCommentCommand(task.Id, creatorId, false, "Comment by creator");
 
@@ -84,6 +88,7 @@ namespace Workspaces.Application.Tests.Tasks.AddComment
             var assigneeId = Guid.NewGuid();
             var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, assigneeId, creatorId);
             _taskRepository.TaskToReturn = task;
+            _workspaceRepository.Members.Add((task.WorkspaceId, assigneeId));
 
             var command = new AddCommentCommand(task.Id, assigneeId, false, "Comment by assignee");
 
@@ -94,6 +99,28 @@ namespace Workspaces.Application.Tests.Tasks.AddComment
             result.IsSuccess.Should().BeTrue();
             task.Comments.Should().ContainSingle(c => c.Content == "Comment by assignee");
             _taskRepository.AddedComments.Should().ContainSingle(c => c.Content == "Comment by assignee");
+            _uow.SaveCount.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task Handle_Should_AddCommentAndSave_When_UserIsWorkspaceMember()
+        {
+            // Arrange
+            var creatorId = Guid.NewGuid();
+            var memberId = Guid.NewGuid();
+            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, creatorId);
+            _taskRepository.TaskToReturn = task;
+            _workspaceRepository.Members.Add((task.WorkspaceId, memberId));
+
+            var command = new AddCommentCommand(task.Id, memberId, false, "Comment by member");
+
+            // Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            task.Comments.Should().ContainSingle(c => c.Content == "Comment by member");
+            _taskRepository.AddedComments.Should().ContainSingle(c => c.Content == "Comment by member");
             _uow.SaveCount.Should().Be(1);
         }
 
@@ -116,6 +143,26 @@ namespace Workspaces.Application.Tests.Tasks.AddComment
             task.Comments.Should().ContainSingle(c => c.Content == "Comment by admin");
             _taskRepository.AddedComments.Should().ContainSingle(c => c.Content == "Comment by admin");
             _uow.SaveCount.Should().Be(1);
+        }
+
+        private sealed class FakeWorkspaceRepository : IWorkspaceRepository
+        {
+            public HashSet<(Guid WorkspaceId, Guid UserId)> Members { get; } = new();
+
+            public Task<Workspace?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
+                Task.FromResult<Workspace?>(null);
+
+            public Task<PaginationResult<Domain.Workspaces.Workspace>> GetByMemberAsync(Guid userId, string? name, int page, int pageSize, CancellationToken cancellationToken) =>
+                Task.FromResult(PaginationResult<Domain.Workspaces.Workspace>.Create(Array.Empty<Domain.Workspaces.Workspace>(), page, pageSize, 0));
+
+            public Task<PaginationResult<Domain.Workspaces.Workspace>> GetAllAsync(string? name, int page, int pageSize, CancellationToken cancellationToken) =>
+                Task.FromResult(PaginationResult<Domain.Workspaces.Workspace>.Create(Array.Empty<Domain.Workspaces.Workspace>(), page, pageSize, 0));
+
+            public Task AddAsync(Domain.Workspaces.Workspace workspace, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task RemoveAsync(Domain.Workspaces.Workspace workspace, CancellationToken cancellationToken) => Task.CompletedTask;
+
+            public Task<bool> IsMemberAsync(Guid workspaceId, Guid userId, CancellationToken cancellationToken) =>
+                Task.FromResult(Members.Contains((workspaceId, userId)));
         }
 
         private sealed class FakeUnitOfWork : IUnitOfWork

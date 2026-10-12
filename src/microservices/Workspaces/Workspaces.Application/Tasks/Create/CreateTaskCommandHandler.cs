@@ -1,8 +1,10 @@
+using DomainFramework.Errors;
 using DomainFramework.Results;
 using Messaging.Abstractions;
 using Workspaces.Application.Abstractions;
 using Workspaces.Domain.Tags;
 using Workspaces.Domain.Tasks;
+using Workspaces.Domain.Workspaces;
 
 namespace Workspaces.Application.Tasks.Create
 {
@@ -13,21 +15,42 @@ namespace Workspaces.Application.Tasks.Create
     {
         private readonly IUnitOfWork _uow;
         private readonly ITaskRepository _taskRepository;
+        private readonly IWorkspaceRepository _workspaceRepository;
         private readonly ITagRepository _tagRepository;
 
         public CreateTaskCommandHandler(
             IUnitOfWork uow,
             ITaskRepository taskRepository,
+            IWorkspaceRepository workspaceRepository,
             ITagRepository tagRepository)
         {
             _uow = uow;
             _taskRepository = taskRepository;
+            _workspaceRepository = workspaceRepository;
             _tagRepository = tagRepository;
         }
 
         /// <inheritdoc/>
         public async Task<Result<Guid>> Handle(CreateTaskCommand command, CancellationToken cancellationToken)
         {
+            if (!command.IsAdmin)
+            {
+                var isCreatorMember = await _workspaceRepository.IsMemberAsync(command.WorkspaceId, command.CreatedById, cancellationToken);
+                if (!isCreatorMember)
+                {
+                    return Result<Guid>.Failure(new ForbiddenError("You must be a member of the workspace to create a task in it."));
+                }
+            }
+
+            if (command.AssigneeId.HasValue)
+            {
+                var isAssigneeMember = await _workspaceRepository.IsMemberAsync(command.WorkspaceId, command.AssigneeId.Value, cancellationToken);
+                if (!isAssigneeMember)
+                {
+                    return Result<Guid>.Failure(new InvalidArgumentError("The assigned user must be a member of the workspace."));
+                }
+            }
+
             var task = TaskItem.Create(
                 command.WorkspaceId,
                 command.Title,

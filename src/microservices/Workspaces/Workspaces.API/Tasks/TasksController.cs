@@ -99,6 +99,7 @@ namespace Workspaces.API.Tasks
         [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Create([FromBody] CreateTaskRequest request, CancellationToken ct)
         {
             var userId = GetUserId();
@@ -107,7 +108,8 @@ namespace Workspaces.API.Tasks
                 return Unauthorized();
             }
 
-            var command = request.ToCommand(userId);
+            var isAdmin = User.IsInRole("Admin");
+            var command = request.ToCommand(userId, isAdmin);
             var result = await _mediator.Send(command, ct);
 
             return result.Match(Ok(result.Value), error => this.ToActionResult(error));

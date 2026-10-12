@@ -12,7 +12,7 @@ namespace Workspaces.API.Tasks.Requests
         Guid? AssigneeId,
         IEnumerable<string>? Tags)
     {
-        public CreateTaskCommand ToCommand(Guid createdById)
+        public CreateTaskCommand ToCommand(Guid createdById, bool isAdmin = false)
         {
             return new CreateTaskCommand(
                 WorkspaceId,
@@ -22,7 +22,8 @@ namespace Workspaces.API.Tasks.Requests
                 Priority,
                 Deadline,
                 AssigneeId,
-                Tags ?? Enumerable.Empty<string>());
+                Tags ?? Enumerable.Empty<string>(),
+                isAdmin);
         }
     }
 }

@@ -5,6 +5,7 @@ using Messaging.Abstractions;
 using Workspaces.Application.Abstractions;
 using Workspaces.Application.Tasks.DTOs;
 using Workspaces.Domain.Tasks;
+using Workspaces.Domain.Workspaces;
 
 namespace Workspaces.Application.Tasks.GetComments
 {
@@ -16,13 +17,16 @@ namespace Workspaces.Application.Tasks.GetComments
         : IQueryHandler<GetTaskCommentsQuery, Result<PaginationResult<TaskCommentResult>>>
     {
         private readonly ITaskRepository _taskRepository;
+        private readonly IWorkspaceRepository _workspaceRepository;
         private readonly IUsersApiClient _usersApiClient;
 
         public GetTaskCommentsQueryHandler(
             ITaskRepository taskRepository,
+            IWorkspaceRepository workspaceRepository,
             IUsersApiClient usersApiClient)
         {
             _taskRepository = taskRepository;
+            _workspaceRepository = workspaceRepository;
             _usersApiClient = usersApiClient;
         }
 
@@ -38,12 +42,14 @@ namespace Workspaces.Application.Tasks.GetComments
                     new NotFoundError($"Task '{query.TaskId}' was not found."));
             }
 
-            if (!query.IsAdmin
-                && task.CreatedById != query.RequestingUserId
-                && task.AssigneeId != query.RequestingUserId)
+            if (!query.IsAdmin)
             {
-                return Result<PaginationResult<TaskCommentResult>>.Failure(
-                    new ForbiddenError("You are not allowed to view comments on this task."));
+                var isMember = await _workspaceRepository.IsMemberAsync(task.WorkspaceId, query.RequestingUserId, cancellationToken);
+                if (!isMember)
+                {
+                    return Result<PaginationResult<TaskCommentResult>>.Failure(
+                        new ForbiddenError("You are not allowed to view comments on this task."));
+                }
             }
 
             var commentsPage = await _taskRepository.GetCommentsByTaskIdAsync(

@@ -3,6 +3,7 @@ using DomainFramework.Results;
 using Messaging.Abstractions;
 using Workspaces.Application.Abstractions;
 using Workspaces.Domain.Tasks;
+using Workspaces.Domain.Workspaces;
 
 namespace Workspaces.Application.Tasks.AddComment
 {
@@ -13,11 +14,16 @@ namespace Workspaces.Application.Tasks.AddComment
     {
         private readonly IUnitOfWork _uow;
         private readonly ITaskRepository _taskRepository;
+        private readonly IWorkspaceRepository _workspaceRepository;
 
-        public AddCommentCommandHandler(IUnitOfWork uow, ITaskRepository taskRepository)
+        public AddCommentCommandHandler(
+            IUnitOfWork uow,
+            ITaskRepository taskRepository,
+            IWorkspaceRepository workspaceRepository)
         {
             _uow = uow;
             _taskRepository = taskRepository;
+            _workspaceRepository = workspaceRepository;
         }
 
         /// <inheritdoc/>
@@ -29,9 +35,13 @@ namespace Workspaces.Application.Tasks.AddComment
                 return Result<Guid>.Failure(new NotFoundError($"Task '{command.TaskId}' was not found."));
             }
 
-            if (!command.IsAdmin && task.CreatedById != command.UserId && task.AssigneeId != command.UserId)
+            if (!command.IsAdmin)
             {
-                return Result<Guid>.Failure(new ForbiddenError("You are not allowed to comment on this task."));
+                var isMember = await _workspaceRepository.IsMemberAsync(task.WorkspaceId, command.UserId, cancellationToken);
+                if (!isMember)
+                {
+                    return Result<Guid>.Failure(new ForbiddenError("You are not allowed to comment on this task."));
+                }
             }
 
             var comment = task.AddComment(command.UserId, command.Content);
