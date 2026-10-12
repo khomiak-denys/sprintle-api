@@ -5,7 +5,6 @@ using Messaging.Abstractions;
 using Microsoft.Extensions.Logging;
 using Workspaces.Application.Abstractions;
 using Workspaces.Application.Tasks.DTOs;
-using Workspaces.Application.Workspaces.DTOs;
 using Workspaces.Domain.Workspaces;
 
 namespace Workspaces.Application.Workspaces.Members.GetMembers
@@ -15,7 +14,7 @@ namespace Workspaces.Application.Workspaces.Members.GetMembers
     /// Guarded so only workspace members or admins can view.
     /// </summary>
     internal sealed partial class GetWorkspaceMembersQueryHandler
-        : IQueryHandler<GetWorkspaceMembersQuery, Result<PaginationResult<WorkspaceMemberResult>>>
+        : IQueryHandler<GetWorkspaceMembersQuery, Result<PaginationResult<UserResult>>>
     {
         private readonly IWorkspaceRepository _workspaceRepository;
         private readonly IUsersApiClient _usersApiClient;
@@ -32,7 +31,7 @@ namespace Workspaces.Application.Workspaces.Members.GetMembers
         }
 
         /// <inheritdoc/>
-        public async Task<Result<PaginationResult<WorkspaceMemberResult>>> Handle(
+        public async Task<Result<PaginationResult<UserResult>>> Handle(
             GetWorkspaceMembersQuery query,
             CancellationToken cancellationToken)
         {
@@ -40,7 +39,7 @@ namespace Workspaces.Application.Workspaces.Members.GetMembers
             if (workspace is null)
             {
                 LogWorkspaceNotFound(query.WorkspaceId);
-                return Result<PaginationResult<WorkspaceMemberResult>>.Failure(
+                return Result<PaginationResult<UserResult>>.Failure(
                     new NotFoundError($"Workspace '{query.WorkspaceId}' was not found."));
             }
 
@@ -50,7 +49,7 @@ namespace Workspaces.Application.Workspaces.Members.GetMembers
             if (!query.IsAdmin && !isMemberOrOwner)
             {
                 LogUnauthorizedAccess(query.RequestingUserId, query.WorkspaceId);
-                return Result<PaginationResult<WorkspaceMemberResult>>.Failure(
+                return Result<PaginationResult<UserResult>>.Failure(
                     new ForbiddenError("Only workspace members or an admin can view workspace members."));
             }
 
@@ -76,14 +75,7 @@ namespace Workspaces.Application.Workspaces.Members.GetMembers
                 }
             }
 
-            var results = usersMap.Values
-                .Select(user => new WorkspaceMemberResult(
-                    user.Id,
-                    user.Email,
-                    user.UserName,
-                    user.FullName,
-                    user.Id == workspace.OwnerId))
-                .ToList();
+            var results = usersMap.Values.ToList();
 
             if (string.IsNullOrWhiteSpace(query.Search))
             {
@@ -91,12 +83,11 @@ namespace Workspaces.Application.Workspaces.Members.GetMembers
                 {
                     if (!usersMap.ContainsKey(memberId))
                     {
-                        results.Add(new WorkspaceMemberResult(
+                        results.Add(new UserResult(
                             memberId,
                             string.Empty,
                             "Unknown",
-                            null,
-                            memberId == workspace.OwnerId));
+                            null));
                     }
                 }
             }
@@ -110,13 +101,13 @@ namespace Workspaces.Application.Workspaces.Members.GetMembers
                 .Take(effectivePageSize)
                 .ToList();
 
-            var paginationResult = PaginationResult<WorkspaceMemberResult>.Create(
+            var paginationResult = PaginationResult<UserResult>.Create(
                 pagedItems,
                 effectivePage,
                 effectivePageSize,
                 totalCount);
 
-            return Result<PaginationResult<WorkspaceMemberResult>>.Success(paginationResult);
+            return Result<PaginationResult<UserResult>>.Success(paginationResult);
         }
 
         [LoggerMessage(Level = LogLevel.Warning, Message = "Workspace '{WorkspaceId}' was not found when retrieving members.")]

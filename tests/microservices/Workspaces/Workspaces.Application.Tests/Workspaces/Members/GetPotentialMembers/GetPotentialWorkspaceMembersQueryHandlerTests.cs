@@ -4,7 +4,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Workspaces.Application.Abstractions;
 using Workspaces.Application.Tasks.DTOs;
-using Workspaces.Application.Workspaces.DTOs;
 using Workspaces.Application.Workspaces.Members.GetPotentialMembers;
 using Workspaces.Domain.Workspaces;
 using Xunit;
@@ -75,8 +74,7 @@ namespace Workspaces.Application.Tests.Workspaces.Members.GetPotentialMembers
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Value.TotalCount.Should().Be(1);
-            result.Value.Items.Should().ContainSingle(u => u.UserId == potentialUser.Id);
-            result.Value.Items[0].IsOwner.Should().BeFalse();
+            result.Value.Items.Should().ContainSingle(u => u.Id == potentialUser.Id);
             _usersApiClient.LastIsWorkspaceMember.Should().Be(false);
         }
 
@@ -101,7 +99,7 @@ namespace Workspaces.Application.Tests.Workspaces.Members.GetPotentialMembers
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Value.TotalCount.Should().Be(1);
-            result.Value.Items.Should().ContainSingle(u => u.UserId == potentialUser.Id);
+            result.Value.Items.Should().ContainSingle(u => u.Id == potentialUser.Id);
             _usersApiClient.LastIsWorkspaceMember.Should().Be(false);
         }
 

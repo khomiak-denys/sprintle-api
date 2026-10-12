@@ -10,8 +10,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Workspaces.API.Workspaces;
 using Workspaces.API.Workspaces.Requests;
+using Workspaces.Application.Tasks.DTOs;
 using Workspaces.Application.Workspaces.Create;
-using Workspaces.Application.Workspaces.DTOs;
 using Workspaces.Application.Workspaces.Members.GetPotentialMembers;
 using Xunit;
 
@@ -145,9 +145,9 @@ namespace Workspaces.API.Tests.Workspaces
             var workspaceId = Guid.NewGuid();
             SetUserContext(userId, role: "User");
 
-            var potentialUser = new WorkspaceMemberResult(Guid.NewGuid(), "dev@example.com", "devuser", "Developer", false);
-            var paged = PaginationResult<WorkspaceMemberResult>.Create(new[] { potentialUser }, 1, 10, 1);
-            _mediator.GetPotentialResult = Result<PaginationResult<WorkspaceMemberResult>>.Success(paged);
+            var potentialUser = new UserResult(Guid.NewGuid(), "dev@example.com", "devuser", "Developer");
+            var paged = PaginationResult<UserResult>.Create(new[] { potentialUser }, 1, 10, 1);
+            _mediator.GetPotentialResult = Result<PaginationResult<UserResult>>.Success(paged);
 
             // Act
             var result = await _controller.GetPotentialMembers(
@@ -159,7 +159,7 @@ namespace Workspaces.API.Tests.Workspaces
 
             // Assert
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            var response = okResult.Value.Should().BeOfType<PaginationResult<WorkspaceMemberResult>>().Subject;
+            var response = okResult.Value.Should().BeOfType<PaginationResult<UserResult>>().Subject;
             response.TotalCount.Should().Be(1);
             _mediator.LastGetPotentialQuery.Should().NotBeNull();
             _mediator.LastGetPotentialQuery!.WorkspaceId.Should().Be(workspaceId);
@@ -174,7 +174,7 @@ namespace Workspaces.API.Tests.Workspaces
             var workspaceId = Guid.NewGuid();
             SetUserContext(userId, role: "User");
 
-            _mediator.GetPotentialResult = Result<PaginationResult<WorkspaceMemberResult>>.Failure(
+            _mediator.GetPotentialResult = Result<PaginationResult<UserResult>>.Failure(
                 new ForbiddenError("Only workspace owner or admin can view potential members."));
 
             // Act
@@ -211,7 +211,7 @@ namespace Workspaces.API.Tests.Workspaces
         private sealed class FakeMediator : IMediator
         {
             public Result<Guid>? CreateResult { get; set; }
-            public Result<PaginationResult<WorkspaceMemberResult>>? GetPotentialResult { get; set; }
+            public Result<PaginationResult<UserResult>>? GetPotentialResult { get; set; }
             public GetPotentialWorkspaceMembersQuery? LastGetPotentialQuery { get; private set; }
 
             public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)

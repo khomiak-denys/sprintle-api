@@ -4,7 +4,7 @@ using DomainFramework.Results;
 using Messaging.Abstractions;
 using Microsoft.Extensions.Logging;
 using Workspaces.Application.Abstractions;
-using Workspaces.Application.Workspaces.DTOs;
+using Workspaces.Application.Tasks.DTOs;
 using Workspaces.Domain.Workspaces;
 
 namespace Workspaces.Application.Workspaces.Members.GetPotentialMembers
@@ -14,7 +14,7 @@ namespace Workspaces.Application.Workspaces.Members.GetPotentialMembers
     /// Guarded so only the workspace owner or an admin can view.
     /// </summary>
     internal sealed partial class GetPotentialWorkspaceMembersQueryHandler
-        : IQueryHandler<GetPotentialWorkspaceMembersQuery, Result<PaginationResult<WorkspaceMemberResult>>>
+        : IQueryHandler<GetPotentialWorkspaceMembersQuery, Result<PaginationResult<UserResult>>>
     {
         private readonly IWorkspaceRepository _workspaceRepository;
         private readonly IUsersApiClient _usersApiClient;
@@ -31,7 +31,7 @@ namespace Workspaces.Application.Workspaces.Members.GetPotentialMembers
         }
 
         /// <inheritdoc/>
-        public async Task<Result<PaginationResult<WorkspaceMemberResult>>> Handle(
+        public async Task<Result<PaginationResult<UserResult>>> Handle(
             GetPotentialWorkspaceMembersQuery query,
             CancellationToken cancellationToken)
         {
@@ -39,7 +39,7 @@ namespace Workspaces.Application.Workspaces.Members.GetPotentialMembers
             if (workspace is null)
             {
                 LogWorkspaceNotFound(query.WorkspaceId);
-                return Result<PaginationResult<WorkspaceMemberResult>>.Failure(
+                return Result<PaginationResult<UserResult>>.Failure(
                     new NotFoundError($"Workspace '{query.WorkspaceId}' was not found."));
             }
 
@@ -47,7 +47,7 @@ namespace Workspaces.Application.Workspaces.Members.GetPotentialMembers
             if (!query.IsAdmin && !isOwner)
             {
                 LogUnauthorizedAccess(query.RequestingUserId, query.WorkspaceId);
-                return Result<PaginationResult<WorkspaceMemberResult>>.Failure(
+                return Result<PaginationResult<UserResult>>.Failure(
                     new ForbiddenError("Only the workspace owner or an admin can view potential members."));
             }
 
@@ -64,17 +64,15 @@ namespace Workspaces.Application.Workspaces.Members.GetPotentialMembers
                 isWorkspaceMember: false,
                 cancellationToken: cancellationToken);
 
-            var items = usersMap.Values
-                .Select(u => new WorkspaceMemberResult(u.Id, u.Email, u.UserName, u.FullName, IsOwner: false))
-                .ToList();
+            var items = usersMap.Values.ToList();
 
-            var paginationResult = PaginationResult<WorkspaceMemberResult>.Create(
+            var paginationResult = PaginationResult<UserResult>.Create(
                 items,
                 query.Page,
                 query.PageSize,
                 items.Count);
 
-            return Result<PaginationResult<WorkspaceMemberResult>>.Success(paginationResult);
+            return Result<PaginationResult<UserResult>>.Success(paginationResult);
         }
 
         [LoggerMessage(Level = LogLevel.Warning, Message = "Workspace '{WorkspaceId}' was not found when retrieving potential members.")]

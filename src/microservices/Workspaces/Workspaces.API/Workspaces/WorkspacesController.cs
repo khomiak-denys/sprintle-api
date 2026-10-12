@@ -8,6 +8,7 @@ using ServiceDefaults.Authorization;
 using ServiceDefaults.ErrorHandling;
 using Swashbuckle.AspNetCore.Annotations;
 using Workspaces.API.Workspaces.Requests;
+using Workspaces.Application.Tasks.DTOs;
 using Workspaces.Application.Workspaces.Create;
 using Workspaces.Application.Workspaces.Delete;
 using Workspaces.Application.Workspaces.DTOs;
@@ -202,7 +203,7 @@ namespace Workspaces.API.Workspaces
         /// <returns>A paginated list of workspace members.</returns>
         [HttpGet("{id:guid}/members")]
         [SwaggerOperation(Summary = "Gets paginated members of a workspace with optional search (Admin or workspace member only)")]
-        [ProducesResponseType(typeof(PaginationResult<WorkspaceMemberResult>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginationResult<UserResult>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -239,7 +240,7 @@ namespace Workspaces.API.Workspaces
         /// <returns>A paginated list of potential workspace members.</returns>
         [HttpGet("{id:guid}/members/potential")]
         [SwaggerOperation(Summary = "Gets paginated potential members of a workspace with optional search (Workspace owner or admin only)")]
-        [ProducesResponseType(typeof(PaginationResult<WorkspaceMemberResult>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginationResult<UserResult>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]

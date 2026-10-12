@@ -81,18 +81,16 @@ namespace Workspaces.Application.Tests.Workspaces.Members.GetMembers
             result.Value.PageSize.Should().Be(3);
             result.Value.Items.Should().HaveCount(2);
 
-            var ownerResult = result.Value.Items.Single(m => m.UserId == ownerId);
+            var ownerResult = result.Value.Items.Single(m => m.Id == ownerId);
             ownerResult.Email.Should().Be("owner@example.com");
             ownerResult.UserName.Should().Be("owner_usr");
             ownerResult.FullName.Should().Be("Workspace Owner");
-            ownerResult.IsOwner.Should().BeTrue();
             ownerResult.Id.Should().Be(ownerId);
 
-            var regularResult = result.Value.Items.Single(m => m.UserId == memberId);
+            var regularResult = result.Value.Items.Single(m => m.Id == memberId);
             regularResult.Email.Should().Be("member@example.com");
             regularResult.UserName.Should().Be("member_usr");
             regularResult.FullName.Should().Be("Regular Member");
-            regularResult.IsOwner.Should().BeFalse();
             regularResult.Id.Should().Be(memberId);
 
             _usersApiClient.BatchCallCount.Should().Be(1);
@@ -118,8 +116,7 @@ namespace Workspaces.Application.Tests.Workspaces.Members.GetMembers
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Value.Items.Should().HaveCount(1);
-            result.Value.Items[0].UserId.Should().Be(ownerId);
-            result.Value.Items[0].IsOwner.Should().BeTrue();
+            result.Value.Items[0].Id.Should().Be(ownerId);
         }
 
         [Fact]
@@ -143,21 +140,21 @@ namespace Workspaces.Application.Tests.Workspaces.Members.GetMembers
             var resultUser = await _handler.Handle(queryUser, CancellationToken.None);
             resultUser.IsSuccess.Should().BeTrue();
             resultUser.Value.TotalCount.Should().Be(1);
-            resultUser.Value.Items.Should().ContainSingle(m => m.UserId == member1Id);
+            resultUser.Value.Items.Should().ContainSingle(m => m.Id == member1Id);
 
             // Search by full name contains "wonder" (case-insensitive)
             var queryName = new GetWorkspaceMembersQuery(workspace.Id, ownerId, false, Search: "WONDER");
             var resultName = await _handler.Handle(queryName, CancellationToken.None);
             resultName.IsSuccess.Should().BeTrue();
             resultName.Value.TotalCount.Should().Be(1);
-            resultName.Value.Items.Should().ContainSingle(m => m.UserId == ownerId);
+            resultName.Value.Items.Should().ContainSingle(m => m.Id == ownerId);
 
             // Search by email contains "gamma.net"
             var queryEmail = new GetWorkspaceMembersQuery(workspace.Id, ownerId, false, Search: "gamma");
             var resultEmail = await _handler.Handle(queryEmail, CancellationToken.None);
             resultEmail.IsSuccess.Should().BeTrue();
             resultEmail.Value.TotalCount.Should().Be(1);
-            resultEmail.Value.Items.Should().ContainSingle(m => m.UserId == member2Id);
+            resultEmail.Value.Items.Should().ContainSingle(m => m.Id == member2Id);
         }
 
         [Fact]
@@ -215,11 +212,10 @@ namespace Workspaces.Application.Tests.Workspaces.Members.GetMembers
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Value.Items.Should().HaveCount(1);
-            result.Value.Items[0].UserId.Should().Be(ownerId);
+            result.Value.Items[0].Id.Should().Be(ownerId);
             result.Value.Items[0].UserName.Should().Be("Unknown");
             result.Value.Items[0].Email.Should().BeEmpty();
             result.Value.Items[0].FullName.Should().BeNull();
-            result.Value.Items[0].IsOwner.Should().BeTrue();
         }
 
         private sealed class FakeWorkspaceRepository : IWorkspaceRepository

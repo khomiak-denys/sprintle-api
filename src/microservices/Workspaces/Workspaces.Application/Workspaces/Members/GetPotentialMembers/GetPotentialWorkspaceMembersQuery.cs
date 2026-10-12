@@ -1,7 +1,7 @@
 using DomainFramework;
 using DomainFramework.Results;
 using Messaging.Abstractions;
-using Workspaces.Application.Workspaces.DTOs;
+using Workspaces.Application.Tasks.DTOs;
 
 namespace Workspaces.Application.Workspaces.Members.GetPotentialMembers
 {
@@ -21,5 +21,5 @@ namespace Workspaces.Application.Workspaces.Members.GetPotentialMembers
         bool IsAdmin,
         string? Search = null,
         int Page = 1,
-        int PageSize = 10) : IQuery<Result<PaginationResult<WorkspaceMemberResult>>>;
+        int PageSize = 10) : IQuery<Result<PaginationResult<UserResult>>>;
 }
