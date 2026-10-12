@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Security.Claims;
+using DomainFramework;
 using DomainFramework.Errors;
 using DomainFramework.Results;
 using FluentAssertions;
@@ -10,6 +11,8 @@ using Microsoft.AspNetCore.Mvc;
 using Workspaces.API.Workspaces;
 using Workspaces.API.Workspaces.Requests;
 using Workspaces.Application.Workspaces.Create;
+using Workspaces.Application.Workspaces.DTOs;
+using Workspaces.Application.Workspaces.Members.GetPotentialMembers;
 using Xunit;
 
 namespace Workspaces.API.Tests.Workspaces
@@ -121,6 +124,67 @@ namespace Workspaces.API.Tests.Workspaces
             objectResult.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
         }
 
+        [Fact]
+        public async Task GetPotentialMembers_Should_ReturnUnauthorized_When_UserIdIsEmpty()
+        {
+            // Arrange
+            SetUserContext(userId: null, role: null);
+
+            // Act
+            var result = await _controller.GetPotentialMembers(Guid.NewGuid(), ct: CancellationToken.None);
+
+            // Assert
+            result.Should().BeOfType<UnauthorizedResult>();
+        }
+
+        [Fact]
+        public async Task GetPotentialMembers_Should_ReturnOkWithPaginationResult_When_Successful()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            SetUserContext(userId, role: "User");
+
+            var potentialUser = new PotentialWorkspaceMemberResult(Guid.NewGuid(), "dev@example.com", "devuser", "Developer");
+            var paged = PaginationResult<PotentialWorkspaceMemberResult>.Create(new[] { potentialUser }, 1, 10, 1);
+            _mediator.GetPotentialResult = Result<PaginationResult<PotentialWorkspaceMemberResult>>.Success(paged);
+
+            // Act
+            var result = await _controller.GetPotentialMembers(
+                workspaceId,
+                search: "dev",
+                page: 1,
+                pageSize: 10,
+                ct: CancellationToken.None);
+
+            // Assert
+            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+            var response = okResult.Value.Should().BeOfType<PaginationResult<PotentialWorkspaceMemberResult>>().Subject;
+            response.TotalCount.Should().Be(1);
+            _mediator.LastGetPotentialQuery.Should().NotBeNull();
+            _mediator.LastGetPotentialQuery!.WorkspaceId.Should().Be(workspaceId);
+            _mediator.LastGetPotentialQuery!.Search.Should().Be("dev");
+        }
+
+        [Fact]
+        public async Task GetPotentialMembers_Should_ReturnForbidden_When_MediatorReturnsForbidden()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            SetUserContext(userId, role: "User");
+
+            _mediator.GetPotentialResult = Result<PaginationResult<PotentialWorkspaceMemberResult>>.Failure(
+                new ForbiddenError("Only workspace owner or admin can view potential members."));
+
+            // Act
+            var result = await _controller.GetPotentialMembers(workspaceId, ct: CancellationToken.None);
+
+            // Assert
+            var objectResult = result.Should().BeOfType<ObjectResult>().Subject;
+            objectResult.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
+        }
+
         private void SetUserContext(Guid? userId, string? role)
         {
             var claims = new List<Claim>();
@@ -147,12 +211,20 @@ namespace Workspaces.API.Tests.Workspaces
         private sealed class FakeMediator : IMediator
         {
             public Result<Guid>? CreateResult { get; set; }
+            public Result<PaginationResult<PotentialWorkspaceMemberResult>>? GetPotentialResult { get; set; }
+            public GetPotentialWorkspaceMembersQuery? LastGetPotentialQuery { get; private set; }
 
             public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
             {
                 if (request is CreateWorkspaceCommand && CreateResult != null)
                 {
                     return Task.FromResult((TResponse)(object)CreateResult);
+                }
+
+                if (request is GetPotentialWorkspaceMembersQuery query && GetPotentialResult != null)
+                {
+                    LastGetPotentialQuery = query;
+                    return Task.FromResult((TResponse)(object)GetPotentialResult);
                 }
 
                 throw new NotImplementedException($"No setup for request type: {request.GetType().Name}");

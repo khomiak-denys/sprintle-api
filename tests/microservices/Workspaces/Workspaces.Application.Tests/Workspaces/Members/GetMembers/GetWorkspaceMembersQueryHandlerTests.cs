@@ -254,10 +254,29 @@ namespace Workspaces.Application.Tests.Workspaces.Members.GetMembers
             }
         }
 
+        [Fact]
+        public async Task Handle_Should_PassIsWorkspaceMemberTrue_When_CallingUsersApiClient()
+        {
+            // Arrange
+            var ownerId = Guid.NewGuid();
+            var workspace = Workspace.Create("Team Space", ownerId, "Desc");
+            _workspaceRepository.Workspaces.Add(workspace);
+
+            var query = new GetWorkspaceMembersQuery(workspace.Id, ownerId, false);
+
+            // Act
+            var result = await _handler.Handle(query, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            _usersApiClient.LastIsWorkspaceMember.Should().BeTrue();
+        }
+
         private sealed class FakeUsersApiClient : IUsersApiClient
         {
             public Dictionary<Guid, UserResult> Users { get; } = new();
             public int BatchCallCount { get; private set; }
+            public bool? LastIsWorkspaceMember { get; private set; }
 
             public Task<UserResult?> GetByIdAsync(Guid userId, CancellationToken cancellationToken)
             {
@@ -270,9 +289,11 @@ namespace Workspaces.Application.Tests.Workspaces.Members.GetMembers
                 int page = 1,
                 int pageSize = 100,
                 string? search = null,
+                bool? isWorkspaceMember = null,
                 CancellationToken cancellationToken = default)
             {
                 BatchCallCount++;
+                LastIsWorkspaceMember = isWorkspaceMember;
                 var query = Users.Where(kvp => userIds.Contains(kvp.Key));
                 if (!string.IsNullOrWhiteSpace(search))
                 {

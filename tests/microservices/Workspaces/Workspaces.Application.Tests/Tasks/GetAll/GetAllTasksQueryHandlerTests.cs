@@ -211,6 +211,8 @@ namespace Workspaces.Application.Tests.Tasks.GetAll
                 IReadOnlyCollection<Guid> userIds,
                 int page = 1,
                 int pageSize = 100,
+                string? search = null,
+                bool? isWorkspaceMember = null,
                 CancellationToken cancellationToken = default)
             {
                 BatchCallCount++;
