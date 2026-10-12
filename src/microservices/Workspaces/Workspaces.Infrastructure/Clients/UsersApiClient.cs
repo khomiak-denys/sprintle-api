@@ -55,14 +55,18 @@ namespace Workspaces.Infrastructure.Clients
             int page = 1,
             int pageSize = 100,
             string? search = null,
+            bool? isWorkspaceMember = null,
             CancellationToken cancellationToken = default)
         {
-            if (userIds == null || userIds.Count == 0)
+            if (isWorkspaceMember != false && (userIds == null || userIds.Count == 0))
             {
                 return new Dictionary<Guid, UserResult>();
             }
 
-            var distinctIds = userIds.Distinct().ToList();
+            var distinctIds = userIds != null && userIds.Count > 0
+                ? userIds.Distinct().ToList()
+                : new List<Guid>();
+
             var effectivePage = Math.Max(1, page);
             var effectivePageSize = Math.Clamp(pageSize, 1, 100);
 
@@ -70,6 +74,11 @@ namespace Workspaces.Infrastructure.Clients
             if (!string.IsNullOrWhiteSpace(search))
             {
                 endpoint += $"&search={Uri.EscapeDataString(search.Trim())}";
+            }
+
+            if (isWorkspaceMember.HasValue)
+            {
+                endpoint += $"&isWorkspaceMember={isWorkspaceMember.Value.ToString().ToLowerInvariant()}";
             }
 
             using var request = new HttpRequestMessage(
@@ -112,6 +121,10 @@ namespace Workspaces.Infrastructure.Clients
 
         private sealed record UsersBatchRequest(IReadOnlyList<Guid> UserIds);
 
-        private sealed record UsersBatchResponse(IReadOnlyList<UserResult>? Items);
+        private sealed record UsersBatchResponse(
+            IReadOnlyList<UserResult>? Items,
+            int Page = 1,
+            int PageSize = 10,
+            int TotalCount = 0);
     }
 }

@@ -15,6 +15,7 @@ using Workspaces.Application.Workspaces.GetAll;
 using Workspaces.Application.Workspaces.GetById;
 using Workspaces.Application.Workspaces.Members.AddMember;
 using Workspaces.Application.Workspaces.Members.GetMembers;
+using Workspaces.Application.Workspaces.Members.GetPotentialMembers;
 using Workspaces.Application.Workspaces.Members.RemoveMember;
 using Workspaces.Application.Workspaces.Update;
 
@@ -221,6 +222,43 @@ namespace Workspaces.API.Workspaces
 
             var isAdmin = User.IsInRole("Admin");
             var query = new GetWorkspaceMembersQuery(id, userId, isAdmin, search, page, pageSize);
+            var result = await _mediator.Send(query, ct);
+
+            return result.Match(Ok(result.Value), error => this.ToActionResult(error));
+        }
+
+        /// <summary>
+        /// Gets paginated potential members for a workspace with optional search across username, full name, or email.
+        /// Guarded so only the workspace owner or an admin can view.
+        /// </summary>
+        /// <param name="id">The workspace identifier.</param>
+        /// <param name="search">Optional search term matching username, full name, or email.</param>
+        /// <param name="page">Page number (1-based, defaults to 1).</param>
+        /// <param name="pageSize">Number of items per page (defaults to 10).</param>
+        /// <param name="ct">Cancellation token.</param>
+        /// <returns>A paginated list of potential workspace members.</returns>
+        [HttpGet("{id:guid}/members/potential")]
+        [SwaggerOperation(Summary = "Gets paginated potential members of a workspace with optional search (Workspace owner or admin only)")]
+        [ProducesResponseType(typeof(PaginationResult<PotentialWorkspaceMemberResult>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetPotentialMembers(
+            Guid id,
+            [FromQuery] string? search = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            CancellationToken ct = default)
+        {
+            var userId = GetUserId();
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized();
+            }
+
+            var isAdmin = User.IsInRole("Admin");
+            var query = new GetPotentialWorkspaceMembersQuery(id, userId, isAdmin, search, page, pageSize);
             var result = await _mediator.Send(query, ct);
 
             return result.Match(Ok(result.Value), error => this.ToActionResult(error));

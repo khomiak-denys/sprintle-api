@@ -61,6 +61,7 @@ namespace Workspaces.Application.Workspaces.Members.GetMembers
                     page: 1,
                     pageSize: chunk.Length,
                     search: query.Search,
+                    isWorkspaceMember: true,
                     cancellationToken: cancellationToken);
 
                 foreach (var (userId, userResult) in chunkMap)
