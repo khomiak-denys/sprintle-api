@@ -75,6 +75,7 @@ namespace Workspaces.Application.Tests.Workspaces.Members.GetPotentialMembers
             result.IsSuccess.Should().BeTrue();
             result.Value.TotalCount.Should().Be(1);
             result.Value.Items.Should().ContainSingle(u => u.UserId == potentialUser.Id);
+            result.Value.Items[0].IsOwner.Should().BeFalse();
             _usersApiClient.LastIsWorkspaceMember.Should().Be(false);
         }
 
