@@ -39,7 +39,11 @@ namespace Workspaces.Application.Tasks.Assign
                 return Result.Failure(new NotFoundError($"User '{command.AssigneeId}' was not found."));
             }
 
-            task.Assign(command.AssigneeId);
+            var assignResult = task.Assign(command.AssigneeId);
+            if (assignResult.IsFailure)
+            {
+                return assignResult;
+            }
 
             await _uow.SaveChangesAsync(cancellationToken);
             return Result.Success();

@@ -7,13 +7,15 @@ using Microsoft.AspNetCore.Mvc;
 using ServiceDefaults.ErrorHandling;
 using Swashbuckle.AspNetCore.Annotations;
 using Workspaces.API.Tasks.Requests;
+using Workspaces.Application.Tasks.Approve;
 using Workspaces.Application.Tasks.Assign;
 using Workspaces.Application.Tasks.Cancel;
-using Workspaces.Application.Tasks.Complete;
+using Workspaces.Application.Tasks.Close;
 using Workspaces.Application.Tasks.DTOs;
 using Workspaces.Application.Tasks.GetAll;
 using Workspaces.Application.Tasks.GetById;
 using Workspaces.Application.Tasks.GetMy;
+using Workspaces.Application.Tasks.SubmitForReview;
 
 namespace Workspaces.API.Tasks
 {
@@ -148,13 +150,14 @@ namespace Workspaces.API.Tasks
             return result.Match(NoContent(), error => this.ToActionResult(error));
         }
 
-        [HttpPatch("{id:guid}/status")]
-        [SwaggerOperation(Summary = "Changes the status of a task")]
+        [HttpPatch("{id:guid}/submit-for-review")]
+        [SwaggerOperation(Summary = "Submits a task for review")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ChangeTaskStatusRequest request, CancellationToken ct)
+        public async Task<IActionResult> SubmitForReview(Guid id, CancellationToken ct)
         {
             var userId = GetUserId();
             if (userId == Guid.Empty)
@@ -162,7 +165,7 @@ namespace Workspaces.API.Tasks
                 return Unauthorized();
             }
 
-            var command = request.ToCommand(id, userId);
+            var command = new SubmitForReviewCommand(id, userId);
             var result = await _mediator.Send(command, ct);
 
             return result.Match(NoContent(), error => this.ToActionResult(error));
@@ -188,11 +191,34 @@ namespace Workspaces.API.Tasks
             return result.Match(NoContent(), error => this.ToActionResult(error));
         }
 
-        [HttpPost("{id:guid}/complete")]
-        [SwaggerOperation(Summary = "Completes a task")]
+        [HttpPatch("{id:guid}/approve")]
+        [SwaggerOperation(Summary = "Approves a task from review")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Approve(Guid id, CancellationToken ct)
+        {
+            var userId = GetUserId();
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized();
+            }
+
+            var isAdmin = User.IsInRole("Admin");
+            var command = new ApproveTaskCommand(id, userId, isAdmin);
+            var result = await _mediator.Send(command, ct);
+
+            return result.Match(NoContent(), error => this.ToActionResult(error));
+        }
+
+        [HttpPatch("{id:guid}/complete")]
+        [SwaggerOperation(Summary = "Completes a task from review")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Complete(Guid id, CancellationToken ct)
         {
@@ -202,17 +228,42 @@ namespace Workspaces.API.Tasks
                 return Unauthorized();
             }
 
-            var command = new CompleteTaskCommand(id, userId);
+            var isAdmin = User.IsInRole("Admin");
+            var command = new ApproveTaskCommand(id, userId, isAdmin);
+            var result = await _mediator.Send(command, ct);
+
+            return result.Match(NoContent(), error => this.ToActionResult(error));
+        }
+
+        [HttpPatch("{id:guid}/close")]
+        [SwaggerOperation(Summary = "Closes a completed task")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Close(Guid id, CancellationToken ct)
+        {
+            var userId = GetUserId();
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized();
+            }
+
+            var isAdmin = User.IsInRole("Admin");
+            var command = new CloseTaskCommand(id, userId, isAdmin);
             var result = await _mediator.Send(command, ct);
 
             return result.Match(NoContent(), error => this.ToActionResult(error));
         }
 
         [HttpDelete("{id:guid}")]
+        [HttpPatch("{id:guid}/cancel")]
         [SwaggerOperation(Summary = "Cancels a task")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Cancel(Guid id, CancellationToken ct)
         {
@@ -222,7 +273,8 @@ namespace Workspaces.API.Tasks
                 return Unauthorized();
             }
 
-            var command = new CancelTaskCommand(id, userId);
+            var isAdmin = User.IsInRole("Admin");
+            var command = new CancelTaskCommand(id, userId, isAdmin);
             var result = await _mediator.Send(command, ct);
 
             return result.Match(NoContent(), error => this.ToActionResult(error));

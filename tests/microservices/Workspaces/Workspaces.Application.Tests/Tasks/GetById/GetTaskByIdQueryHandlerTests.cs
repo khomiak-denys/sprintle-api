@@ -113,6 +113,28 @@ namespace Workspaces.Application.Tests.Tasks.GetById
             result.Value.Assignee.Should().BeNull();
         }
 
+        [Fact]
+        public async Task Handle_Should_ReturnAvailableTransitionsWithPermissions_When_Queried()
+        {
+            // Arrange
+            var creatorId = Guid.NewGuid();
+            var nonAdminOtherUserId = Guid.NewGuid();
+
+            var task = TaskItem.Create(Guid.NewGuid(), "Todo Task", null, Priority.Medium, null, null, creatorId);
+            _taskRepository.TaskToReturn = task;
+
+            var query = new GetTaskByIdQuery(task.Id, creatorId, false);
+
+            // Act
+            var result = await _handler.Handle(query, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Value.AvailableTransitions.Should().NotBeNull();
+            result.Value.AvailableTransitions!.Should().Contain(t => t.Action == TaskAction.Assign && t.IsAllowed);
+            result.Value.AvailableTransitions!.Should().Contain(t => t.Action == TaskAction.Cancel && t.IsAllowed);
+        }
+
         private sealed class FakeTaskRepository : ITaskRepository
         {
             public TaskItem? TaskToReturn { get; set; }
@@ -166,6 +188,8 @@ namespace Workspaces.Application.Tests.Tasks.GetById
                 IReadOnlyCollection<Guid> userIds,
                 int page = 1,
                 int pageSize = 100,
+                string? search = null,
+                bool? isWorkspaceMember = null,
                 CancellationToken cancellationToken = default)
             {
                 IReadOnlyDictionary<Guid, UserResult> result = Users

@@ -4,7 +4,7 @@ using TaskStatus = Workspaces.Domain.Tasks.TaskStatus;
 namespace Workspaces.Application.Tasks.DTOs
 {
     /// <summary>
-    /// Represents the full details of a task, including time logs and assignees.
+    /// Represents the full details of a task, including time logs, assignees, and available workflow transitions.
     /// </summary>
     /// <param name="Id">The unique identifier of the task.</param>
     /// <param name="WorkspaceId">The unique identifier of the workspace the task belongs to.</param>
@@ -19,6 +19,7 @@ namespace Workspaces.Application.Tasks.DTOs
     /// <param name="UpdatedAt">The optional timestamp when the task was last updated.</param>
     /// <param name="Tags">The list of tag names associated with the task.</param>
     /// <param name="TimeLogs">The list of time logs logged against the task.</param>
+    /// <param name="AvailableTransitions">The list of available status transitions for this task.</param>
     public record TaskDetailsResult(
         Guid Id,
         Guid WorkspaceId,
@@ -32,7 +33,8 @@ namespace Workspaces.Application.Tasks.DTOs
         DateTime CreatedAt,
         DateTime? UpdatedAt,
         IReadOnlyList<string> Tags,
-        IReadOnlyList<TimeLogResult> TimeLogs)
+        IReadOnlyList<TimeLogResult> TimeLogs,
+        IReadOnlyList<TaskTransitionResult>? AvailableTransitions = null)
     {
         /// <summary>
         /// Gets the assigned user details.
@@ -43,5 +45,10 @@ namespace Workspaces.Application.Tasks.DTOs
         /// Gets the creating user details.
         /// </summary>
         public UserResult CreatedByUser => CreatedBy;
+
+        /// <summary>
+        /// Gets the available transitions or an empty list if null.
+        /// </summary>
+        public IReadOnlyList<TaskTransitionResult> Transitions => AvailableTransitions ?? Array.Empty<TaskTransitionResult>();
     }
 }

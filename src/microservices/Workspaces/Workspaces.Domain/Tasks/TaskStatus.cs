@@ -9,6 +9,7 @@ namespace Workspaces.Domain.Tasks
         InProgress = 1,
         InReview = 2,
         Done = 3,
-        Cancelled = 4
+        Cancelled = 4,
+        Closed = 5
     }
 }
