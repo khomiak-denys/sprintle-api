@@ -202,6 +202,12 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
         }
 
         /// <inheritdoc/>
+        public async Task AddTimeLogAsync(TimeLog timeLog, CancellationToken cancellationToken)
+        {
+            await _context.TimeLogs.AddAsync(timeLog, cancellationToken);
+        }
+
+        /// <inheritdoc/>
         public Task RemoveCommentAsync(TaskComment comment, CancellationToken cancellationToken)
         {
             _context.TaskComments.Remove(comment);

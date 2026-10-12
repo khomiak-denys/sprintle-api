@@ -214,11 +214,13 @@ namespace Workspaces.Domain.Tasks
         /// <param name="minutesSpent">Number of minutes spent.</param>
         /// <param name="description">Optional description of work done.</param>
         /// <param name="loggedDate">Date when the work was done.</param>
-        public void LogTime(Guid userId, int minutesSpent, string? description, DateOnly loggedDate)
+        /// <returns>The created <see cref="TimeLog"/>.</returns>
+        public TimeLog LogTime(Guid userId, int minutesSpent, string? description, DateOnly loggedDate)
         {
             var log = TimeLog.Create(Id, userId, minutesSpent, description, loggedDate);
             TimeLogs.Add(log);
             OnModify();
+            return log;
         }
 
         /// <summary>

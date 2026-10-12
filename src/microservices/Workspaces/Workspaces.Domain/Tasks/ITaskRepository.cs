@@ -92,6 +92,12 @@ namespace Workspaces.Domain.Tasks
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         Task AddCommentAsync(TaskComment comment, CancellationToken cancellationToken) => Task.CompletedTask;
 
+        /// <summary>Adds a new <see cref="TimeLog"/> to the persistence context asynchronously.</summary>
+        /// <param name="timeLog">The time log to add.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task AddTimeLogAsync(TimeLog timeLog, CancellationToken cancellationToken) => Task.CompletedTask;
+
         /// <summary>Removes a <see cref="TaskComment"/> from the persistence context asynchronously.</summary>
         /// <param name="comment">The comment to remove.</param>
         /// <param name="cancellationToken">Cancellation token.</param>

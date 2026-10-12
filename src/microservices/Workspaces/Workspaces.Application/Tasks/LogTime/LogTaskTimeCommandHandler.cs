@@ -29,7 +29,8 @@ namespace Workspaces.Application.Tasks.LogTime
                 return Result.Failure(new NotFoundError($"Task '{command.TaskId}' was not found."));
             }
 
-            task.LogTime(command.UserId, command.MinutesSpent, command.Description, command.LoggedDate);
+            var timeLog = task.LogTime(command.UserId, command.MinutesSpent, command.Description, command.LoggedDate);
+            await _taskRepository.AddTimeLogAsync(timeLog, cancellationToken);
 
             await _uow.SaveChangesAsync(cancellationToken);
             return Result.Success();
