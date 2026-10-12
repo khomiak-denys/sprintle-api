@@ -59,6 +59,7 @@ namespace Workspaces.Domain.Tests.Workspaces
 
             // Assert
             result.IsSuccess.Should().BeTrue();
+            result.Value.UserId.Should().Be(newUserId);
             workspace.Members.Should().HaveCount(2);
             workspace.Members.Should().Contain(m => m.UserId == newUserId);
         }

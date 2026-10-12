@@ -40,9 +40,10 @@ namespace Workspaces.Application.Workspaces.Members.RemoveMember
             var removeResult = workspace.RemoveMember(command.MemberUserId);
             if (removeResult.IsFailure)
             {
-                return removeResult;
+                return Result.Failure(removeResult.Error);
             }
 
+            await _workspaceRepository.RemoveMemberAsync(removeResult.Value, cancellationToken);
             await _uow.SaveChangesAsync(cancellationToken);
             return Result.Success();
         }

@@ -83,5 +83,18 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
             _context.Workspaces.Remove(workspace);
             return Task.CompletedTask;
         }
+
+        /// <inheritdoc/>
+        public async Task AddMemberAsync(WorkspaceMember member, CancellationToken cancellationToken)
+        {
+            await _context.WorkspaceMembers.AddAsync(member, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public Task RemoveMemberAsync(WorkspaceMember member, CancellationToken cancellationToken)
+        {
+            _context.WorkspaceMembers.Remove(member);
+            return Task.CompletedTask;
+        }
     }
 }

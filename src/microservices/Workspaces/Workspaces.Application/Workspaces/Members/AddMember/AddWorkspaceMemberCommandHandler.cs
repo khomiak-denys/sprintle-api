@@ -37,9 +37,10 @@ namespace Workspaces.Application.Workspaces.Members.AddMember
             var addResult = workspace.AddMember(command.MemberUserId);
             if (addResult.IsFailure)
             {
-                return addResult;
+                return Result.Failure(addResult.Error);
             }
 
+            await _workspaceRepository.AddMemberAsync(addResult.Value, cancellationToken);
             await _uow.SaveChangesAsync(cancellationToken);
             return Result.Success();
         }
