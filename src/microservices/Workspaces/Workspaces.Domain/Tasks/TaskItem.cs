@@ -149,30 +149,6 @@ namespace Workspaces.Domain.Tasks
             return Result.Success();
         }
 
-        /// <summary>
-        /// Transitions the workflow status of the task.
-        /// </summary>
-        /// <param name="newStatus">Target status.</param>
-        /// <returns>Success or validation failure result.</returns>
-        public Result ChangeStatus(TaskStatus newStatus)
-        {
-            var allowed = Status switch
-            {
-                TaskStatus.Todo => newStatus == TaskStatus.InProgress,
-                TaskStatus.InProgress => newStatus == TaskStatus.InReview,
-                TaskStatus.InReview => false,
-                _ => false
-            };
-
-            if (!allowed)
-            {
-                return Result.Failure(new InvalidArgumentError($"Cannot transition task from '{Status}' to '{newStatus}'."));
-            }
-
-            Status = newStatus;
-            OnModify();
-            return Result.Success();
-        }
 
         /// <summary>
         /// Submits the task for review, moving it from 'InProgress' to 'InReview'.

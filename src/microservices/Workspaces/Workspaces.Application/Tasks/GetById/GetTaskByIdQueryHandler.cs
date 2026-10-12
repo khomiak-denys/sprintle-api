@@ -60,6 +60,8 @@ namespace Workspaces.Application.Tasks.GetById
                 ?? new UserResult(task.CreatedById, string.Empty, "Unknown", null);
             var assignedUser = await assignedUserTask;
 
+            var availableTransitions = ComputeTransitions(task, query.RequestingUserId, query.IsAdmin);
+
             var result = new TaskDetailsResult(
                 task.Id,
                 task.WorkspaceId,
@@ -73,9 +75,48 @@ namespace Workspaces.Application.Tasks.GetById
                 task.CreatedAt,
                 task.UpdatedAt,
                 tags,
-                timeLogs);
+                timeLogs,
+                availableTransitions);
 
             return Result<TaskDetailsResult>.Success(result);
+        }
+
+        private static List<TaskTransitionResult> ComputeTransitions(
+            TaskItem task,
+            Guid requestingUserId,
+            bool isAdmin)
+        {
+            var transitions = new List<TaskTransitionResult>();
+            var isRequesterOrAdmin = isAdmin || task.CreatedById == requestingUserId;
+
+            foreach (var action in task.GetAvailableTransitions())
+            {
+                switch (action)
+                {
+                    case TaskAction.Assign:
+                        transitions.Add(new TaskTransitionResult(TaskAction.Assign, Domain.Tasks.TaskStatus.InProgress, true));
+                        break;
+
+                    case TaskAction.SubmitForReview:
+                        var isAssignee = task.AssigneeId.HasValue && task.AssigneeId.Value == requestingUserId;
+                        transitions.Add(new TaskTransitionResult(TaskAction.SubmitForReview, Domain.Tasks.TaskStatus.InReview, isAssignee));
+                        break;
+
+                    case TaskAction.Approve:
+                        transitions.Add(new TaskTransitionResult(TaskAction.Approve, Domain.Tasks.TaskStatus.Done, isRequesterOrAdmin));
+                        break;
+
+                    case TaskAction.Close:
+                        transitions.Add(new TaskTransitionResult(TaskAction.Close, Domain.Tasks.TaskStatus.Closed, isRequesterOrAdmin));
+                        break;
+
+                    case TaskAction.Cancel:
+                        transitions.Add(new TaskTransitionResult(TaskAction.Cancel, Domain.Tasks.TaskStatus.Cancelled, isRequesterOrAdmin));
+                        break;
+                }
+            }
+
+            return transitions;
         }
     }
 }

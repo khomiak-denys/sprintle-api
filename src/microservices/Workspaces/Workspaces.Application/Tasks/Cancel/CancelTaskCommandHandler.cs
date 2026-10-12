@@ -29,6 +29,11 @@ namespace Workspaces.Application.Tasks.Cancel
                 return Result.Failure(new NotFoundError($"Task '{command.TaskId}' was not found."));
             }
 
+            if (!command.IsAdmin && task.CreatedById != command.RequestedById)
+            {
+                return Result.Failure(new ForbiddenError("Only an administrator or the task creator can cancel this task."));
+            }
+
             var result = task.Cancel();
             if (result.IsFailure)
             {

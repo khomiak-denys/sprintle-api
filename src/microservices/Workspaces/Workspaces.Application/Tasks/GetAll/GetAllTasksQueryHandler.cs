@@ -72,7 +72,7 @@ namespace Workspaces.Application.Tasks.GetAll
                     distinctAssigneeIds,
                     1,
                     Math.Clamp(distinctAssigneeIds.Count, 1, 100),
-                    cancellationToken);
+                    cancellationToken: cancellationToken);
             }
 
             var items = pagedTasks.Items
