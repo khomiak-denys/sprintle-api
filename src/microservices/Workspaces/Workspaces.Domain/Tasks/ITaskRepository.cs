@@ -79,5 +79,51 @@ namespace Workspaces.Domain.Tasks
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>Count of matching tasks.</returns>
         Task<int> GetCountByWorkspaceAsync(Guid workspaceId, CancellationToken cancellationToken) => Task.FromResult(0);
+
+        /// <summary>Returns a comment by its id, or <c>null</c> if not found.</summary>
+        /// <param name="commentId">Comment identifier.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The comment, or <c>null</c> if not found.</returns>
+        Task<TaskComment?> GetCommentByIdAsync(Guid commentId, CancellationToken cancellationToken) => Task.FromResult<TaskComment?>(null);
+
+        /// <summary>Adds a new <see cref="TaskComment"/> to the persistence context asynchronously.</summary>
+        /// <param name="comment">The comment to add.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task AddCommentAsync(TaskComment comment, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        /// <summary>Adds a new <see cref="TimeLog"/> to the persistence context asynchronously.</summary>
+        /// <param name="timeLog">The time log to add.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task AddTimeLogAsync(TimeLog timeLog, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        /// <summary>Removes a <see cref="TaskComment"/> from the persistence context asynchronously.</summary>
+        /// <param name="comment">The comment to remove.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task RemoveCommentAsync(TaskComment comment, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        /// <summary>Returns a paginated list of comments for a given task, ordered by CreatedAt descending at the database level.</summary>
+        /// <param name="taskId">The task identifier.</param>
+        /// <param name="page">Page number (1-based).</param>
+        /// <param name="pageSize">Page size.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Paginated result of task comments.</returns>
+        Task<PaginationResult<TaskComment>> GetCommentsByTaskIdAsync(
+            Guid taskId,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(PaginationResult<TaskComment>.Create(Array.Empty<TaskComment>(), page, pageSize, 0));
+
+        /// <summary>Returns comment counts for a batch of task IDs in a single query.</summary>
+        /// <param name="taskIds">The task identifiers.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Dictionary mapping task ID to its comment count.</returns>
+        Task<IReadOnlyDictionary<Guid, int>> GetCommentCountsAsync(
+            IReadOnlyCollection<Guid> taskIds,
+            CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyDictionary<Guid, int>>(new Dictionary<Guid, int>());
     }
 }

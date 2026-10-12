@@ -41,6 +41,9 @@ namespace Workspaces.Domain.Tasks
         /// <summary>Gets the collection of tag join entities associated with this task.</summary>
         public ICollection<TaskTag> TaskTags { get; private set; } = new List<TaskTag>();
 
+        /// <summary>Gets the collection of comments posted on this task.</summary>
+        public ICollection<TaskComment> Comments { get; private set; } = new List<TaskComment>();
+
         private TaskItem() { }
 
         private TaskItem(
@@ -211,11 +214,13 @@ namespace Workspaces.Domain.Tasks
         /// <param name="minutesSpent">Number of minutes spent.</param>
         /// <param name="description">Optional description of work done.</param>
         /// <param name="loggedDate">Date when the work was done.</param>
-        public void LogTime(Guid userId, int minutesSpent, string? description, DateOnly loggedDate)
+        /// <returns>The created <see cref="TimeLog"/>.</returns>
+        public TimeLog LogTime(Guid userId, int minutesSpent, string? description, DateOnly loggedDate)
         {
             var log = TimeLog.Create(Id, userId, minutesSpent, description, loggedDate);
             TimeLogs.Add(log);
             OnModify();
+            return log;
         }
 
         /// <summary>
@@ -230,6 +235,45 @@ namespace Workspaces.Domain.Tasks
             }
 
             Status = TaskStatus.Cancelled;
+            OnModify();
+            return Result.Success();
+        }
+
+        /// <summary>
+        /// Adds a comment to this task.
+        /// </summary>
+        /// <param name="authorId">The commenting user identifier.</param>
+        /// <param name="content">Non-empty comment text.</param>
+        /// <returns>The created <see cref="TaskComment"/>.</returns>
+        public TaskComment AddComment(Guid authorId, string content)
+        {
+            var comment = TaskComment.Create(Id, authorId, content);
+            Comments.Add(comment);
+            OnModify();
+            return comment;
+        }
+
+        /// <summary>
+        /// Removes a comment from this task if it exists in the tracked collection and the user is authorized.
+        /// </summary>
+        /// <param name="commentId">The comment identifier.</param>
+        /// <param name="requestingUserId">The user requesting deletion.</param>
+        /// <param name="isAdmin">Whether the requesting user is an admin.</param>
+        /// <returns>Success or failure result.</returns>
+        public Result RemoveComment(Guid commentId, Guid requestingUserId, bool isAdmin)
+        {
+            var comment = Comments.FirstOrDefault(c => c.Id == commentId);
+            if (comment is null)
+            {
+                return Result.Failure(new NotFoundError($"Comment '{commentId}' was not found."));
+            }
+
+            if (comment.AuthorId != requestingUserId && !isAdmin)
+            {
+                return Result.Failure(new ForbiddenError("Only the comment author or an admin can delete a comment."));
+            }
+
+            Comments.Remove(comment);
             OnModify();
             return Result.Success();
         }

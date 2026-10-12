@@ -15,6 +15,7 @@ namespace Workspaces.Application.Tasks.DTOs
     /// <param name="Deadline">The optional deadline date and time.</param>
     /// <param name="Tags">The list of tag names associated with the task.</param>
     /// <param name="Assignee">The assigned user details, if any.</param>
+    /// <param name="CommentCount">The total number of comments on this task.</param>
     public record TaskResult(
         Guid Id,
         Guid WorkspaceId,
@@ -24,5 +25,6 @@ namespace Workspaces.Application.Tasks.DTOs
         Priority Priority,
         DateTime? Deadline,
         IReadOnlyList<string> Tags,
-        UserResult? Assignee = null);
+        UserResult? Assignee = null,
+        int CommentCount = 0);
 }

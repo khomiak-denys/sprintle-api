@@ -60,6 +60,9 @@ namespace Workspaces.Application.Tasks.GetMy
                     cancellationToken: cancellationToken);
             }
 
+            var taskIds = pagedTasks.Items.Select(t => t.Id).ToList();
+            var commentCounts = await _taskRepository.GetCommentCountsAsync(taskIds, cancellationToken);
+
             var items = pagedTasks.Items
                 .Select(task => new TaskResult(
                     task.Id,
@@ -73,7 +76,8 @@ namespace Workspaces.Application.Tasks.GetMy
                         .Where(tt => tt.Tag is not null)
                         .Select(tt => tt.Tag.Name)
                         .ToList(),
-                    task.AssigneeId.HasValue && assigneeMap.TryGetValue(task.AssigneeId.Value, out var assignee) ? assignee : null))
+                    task.AssigneeId.HasValue && assigneeMap.TryGetValue(task.AssigneeId.Value, out var assignee) ? assignee : null,
+                    commentCounts.TryGetValue(task.Id, out var count) ? count : 0))
                 .ToList();
 
             var result = PaginationResult<TaskResult>.Create(

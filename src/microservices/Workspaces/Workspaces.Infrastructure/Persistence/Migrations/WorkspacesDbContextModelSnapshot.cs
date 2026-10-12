@@ -47,6 +47,37 @@ namespace Workspaces.Infrastructure.Persistence.Migrations
                     b.ToTable("Tags", (string)null);
                 });
 
+            modelBuilder.Entity("Workspaces.Domain.Tasks.TaskComment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TaskId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskId", "CreatedAt")
+                        .HasDatabaseName("IX_TaskComments_TaskId_CreatedAt");
+
+                    b.ToTable("TaskComments", (string)null);
+                });
+
             modelBuilder.Entity("Workspaces.Domain.Tasks.TaskItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -202,6 +233,17 @@ namespace Workspaces.Infrastructure.Persistence.Migrations
                     b.ToTable("WorkspaceMembers", (string)null);
                 });
 
+            modelBuilder.Entity("Workspaces.Domain.Tasks.TaskComment", b =>
+                {
+                    b.HasOne("Workspaces.Domain.Tasks.TaskItem", "Task")
+                        .WithMany("Comments")
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Task");
+                });
+
             modelBuilder.Entity("Workspaces.Domain.Tasks.TaskItem", b =>
                 {
                     b.HasOne("Workspaces.Domain.Workspaces.Workspace", null)
@@ -259,6 +301,8 @@ namespace Workspaces.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Workspaces.Domain.Tasks.TaskItem", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("TaskTags");
 
                     b.Navigation("TimeLogs");
