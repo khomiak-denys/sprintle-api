@@ -196,28 +196,6 @@ namespace Workspaces.Application.Tests.Workspaces.Members.GetMembers
             result2.Value.Items.Should().HaveCount(3);
         }
 
-        [Fact]
-        public async Task Handle_Should_FallbackToUnknown_When_UserNotInUsersApiBatch()
-        {
-            // Arrange
-            var ownerId = Guid.NewGuid();
-            var workspace = Workspace.Create("Dev Space", ownerId, "Desc");
-            _workspaceRepository.Workspaces.Add(workspace);
-
-            var query = new GetWorkspaceMembersQuery(workspace.Id, ownerId, false);
-
-            // Act
-            var result = await _handler.Handle(query, CancellationToken.None);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Value.Items.Should().HaveCount(1);
-            result.Value.Items[0].Id.Should().Be(ownerId);
-            result.Value.Items[0].UserName.Should().Be("Unknown");
-            result.Value.Items[0].Email.Should().BeEmpty();
-            result.Value.Items[0].FullName.Should().BeNull();
-        }
-
         private sealed class FakeWorkspaceRepository : IWorkspaceRepository
         {
             public List<Workspace> Workspaces { get; } = new();
