@@ -114,13 +114,39 @@ namespace Workspaces.Domain.Tasks
         }
 
         /// <summary>
-        /// Assigns the task to a user.
+        /// Returns the list of workflow actions that are structurally valid
+        /// from the current <see cref="Status"/>.
+        /// Authorization checks (role, assignee) are evaluated at the application layer.
+        /// </summary>
+        /// <returns>A read-only collection of available <see cref="TaskAction"/> values.</returns>
+        public IReadOnlyList<TaskAction> GetAvailableTransitions()
+        {
+            return Status switch
+            {
+                TaskStatus.Todo => new[] { TaskAction.Assign, TaskAction.Cancel },
+                TaskStatus.InProgress => new[] { TaskAction.SubmitForReview, TaskAction.Cancel },
+                TaskStatus.InReview => new[] { TaskAction.Approve, TaskAction.Cancel },
+                TaskStatus.Done => new[] { TaskAction.Close },
+                _ => Array.Empty<TaskAction>()
+            };
+        }
+
+        /// <summary>
+        /// Assigns the task to a user and transitions its status from 'Todo' to 'InProgress'.
         /// </summary>
         /// <param name="assigneeId">The user identifier to assign.</param>
-        public void Assign(Guid assigneeId)
+        /// <returns>Success or validation failure result.</returns>
+        public Result Assign(Guid assigneeId)
         {
+            if (Status != TaskStatus.Todo)
+            {
+                return Result.Failure(new InvalidArgumentError($"Task can only be assigned in 'Todo' status. Current status: '{Status}'."));
+            }
+
             AssigneeId = assigneeId;
+            Status = TaskStatus.InProgress;
             OnModify();
+            return Result.Success();
         }
 
         /// <summary>
@@ -149,6 +175,60 @@ namespace Workspaces.Domain.Tasks
         }
 
         /// <summary>
+        /// Submits the task for review, moving it from 'InProgress' to 'InReview'.
+        /// </summary>
+        /// <returns>Success or validation failure result.</returns>
+        public Result SubmitForReview()
+        {
+            if (Status != TaskStatus.InProgress)
+            {
+                return Result.Failure(new InvalidArgumentError($"Task can only be submitted for review from 'InProgress' status. Current status: '{Status}'."));
+            }
+
+            Status = TaskStatus.InReview;
+            OnModify();
+            return Result.Success();
+        }
+
+        /// <summary>
+        /// Marks the task as approved and completed ('Done').
+        /// </summary>
+        /// <returns>Success or validation failure result.</returns>
+        public Result Approve()
+        {
+            if (Status != TaskStatus.InReview)
+            {
+                return Result.Failure(new InvalidArgumentError($"Task can only be approved from 'InReview' status. Current status: '{Status}'."));
+            }
+
+            Status = TaskStatus.Done;
+            OnModify();
+            return Result.Success();
+        }
+
+        /// <summary>
+        /// Marks the task as completed ('Done'). Delegates to <see cref="Approve"/>.
+        /// </summary>
+        /// <returns>Success or validation failure result.</returns>
+        public Result Complete() => Approve();
+
+        /// <summary>
+        /// Closes the task, moving it from 'Done' to 'Closed'.
+        /// </summary>
+        /// <returns>Success or validation failure result.</returns>
+        public Result Close()
+        {
+            if (Status != TaskStatus.Done)
+            {
+                return Result.Failure(new InvalidArgumentError($"Task can only be closed from 'Done' status. Current status: '{Status}'."));
+            }
+
+            Status = TaskStatus.Closed;
+            OnModify();
+            return Result.Success();
+        }
+
+        /// <summary>
         /// Logs time spent on the task.
         /// </summary>
         /// <param name="userId">The logging user identifier.</param>
@@ -163,35 +243,14 @@ namespace Workspaces.Domain.Tasks
         }
 
         /// <summary>
-        /// Marks the task as completed ('Done').
-        /// </summary>
-        /// <returns>Success or validation failure result.</returns>
-        public Result Complete()
-        {
-            if (Status != TaskStatus.InReview)
-            {
-                return Result.Failure(new InvalidArgumentError($"Task can only be completed from 'InReview' status. Current status: '{Status}'."));
-            }
-
-            Status = TaskStatus.Done;
-            OnModify();
-            return Result.Success();
-        }
-
-        /// <summary>
-        /// Cancels the task.
+        /// Cancels the task from 'Todo', 'InProgress', or 'InReview' status.
         /// </summary>
         /// <returns>Success or validation failure result.</returns>
         public Result Cancel()
         {
-            if (Status == TaskStatus.Done)
+            if (Status != TaskStatus.Todo && Status != TaskStatus.InProgress && Status != TaskStatus.InReview)
             {
-                return Result.Failure(new InvalidArgumentError("A completed task cannot be cancelled."));
-            }
-
-            if (Status == TaskStatus.Cancelled)
-            {
-                return Result.Failure(new InvalidArgumentError("Task is already cancelled."));
+                return Result.Failure(new InvalidArgumentError($"Task cannot be cancelled from '{Status}' status."));
             }
 
             Status = TaskStatus.Cancelled;
