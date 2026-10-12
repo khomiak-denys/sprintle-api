@@ -73,6 +73,56 @@ namespace Users.API.Tests.PrivateIntegrations.Users
         }
 
         [Fact]
+        public async Task GetBatchContactInfo_Should_PassIsWorkspaceMemberParameterToQuery_When_IsWorkspaceMemberProvided()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var contactInfo = new UserContactInfoResult(userId, "test@example.com", "testuser", "Test User");
+            var paged = PaginationResult<UserContactInfoResult>.Create(new[] { contactInfo }, 1, 10, 1);
+
+            _sender.BatchResult = Result<PaginationResult<UserContactInfoResult>>.Success(paged);
+
+            var request = new GetUsersBatchRequest(new[] { userId });
+
+            // Act
+            var actionResult = await _controller.GetBatchContactInfo(
+                request,
+                isWorkspaceMember: false,
+                page: 1,
+                pageSize: 10,
+                ct: CancellationToken.None);
+
+            // Assert
+            actionResult.Should().BeOfType<OkObjectResult>();
+            _sender.LastBatchQuery.Should().NotBeNull();
+            _sender.LastBatchQuery!.IsWorkspaceMember.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task GetBatchContactInfo_Should_DefaultToEmptyUserIds_When_RequestIsNull()
+        {
+            // Arrange
+            var contactInfo = new UserContactInfoResult(Guid.NewGuid(), "avail@example.com", "avail", "Avail User");
+            var paged = PaginationResult<UserContactInfoResult>.Create(new[] { contactInfo }, 1, 10, 1);
+
+            _sender.BatchResult = Result<PaginationResult<UserContactInfoResult>>.Success(paged);
+
+            // Act
+            var actionResult = await _controller.GetBatchContactInfo(
+                request: null,
+                isWorkspaceMember: false,
+                page: 1,
+                pageSize: 10,
+                ct: CancellationToken.None);
+
+            // Assert
+            actionResult.Should().BeOfType<OkObjectResult>();
+            _sender.LastBatchQuery.Should().NotBeNull();
+            _sender.LastBatchQuery!.UserIds.Should().BeEmpty();
+            _sender.LastBatchQuery!.IsWorkspaceMember.Should().BeFalse();
+        }
+
+        [Fact]
         public async Task GetBatchContactInfo_Should_ReturnBadRequest_When_FailureOccurs()
         {
             // Arrange
