@@ -42,5 +42,17 @@ namespace Workspaces.Domain.Workspaces
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         Task RemoveAsync(Workspace workspace, CancellationToken cancellationToken);
+
+        /// <summary>Adds a new <see cref="WorkspaceMember"/> to the persistence context asynchronously.</summary>
+        /// <param name="member">The workspace member to add.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task AddMemberAsync(WorkspaceMember member, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        /// <summary>Removes a <see cref="WorkspaceMember"/> from the persistence context asynchronously.</summary>
+        /// <param name="member">The workspace member to remove.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task RemoveMemberAsync(WorkspaceMember member, CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

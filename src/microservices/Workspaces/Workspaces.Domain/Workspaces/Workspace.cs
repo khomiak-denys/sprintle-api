@@ -66,40 +66,41 @@ namespace Workspaces.Domain.Workspaces
         /// Adds a user to the workspace membership list.
         /// </summary>
         /// <param name="userId">The user id to add.</param>
-        /// <returns>A success result, or failure if the user is already a member.</returns>
-        public Result AddMember(Guid userId)
+        /// <returns>A success result with the created member, or failure if the user is already a member.</returns>
+        public Result<WorkspaceMember> AddMember(Guid userId)
         {
             if (Members.Any(m => m.UserId == userId))
             {
-                return Result.Failure(new AlreadyExistsError($"User '{userId}' is already a member of this workspace."));
+                return Result<WorkspaceMember>.Failure(new AlreadyExistsError($"User '{userId}' is already a member of this workspace."));
             }
 
-            Members.Add(WorkspaceMember.Create(Id, userId));
+            var member = WorkspaceMember.Create(Id, userId);
+            Members.Add(member);
             OnModify();
-            return Result.Success();
+            return Result<WorkspaceMember>.Success(member);
         }
 
         /// <summary>
         /// Removes a user from the workspace membership list.
         /// </summary>
         /// <param name="userId">The user id to remove.</param>
-        /// <returns>A success result, or failure if the user is not a member or is the owner.</returns>
-        public Result RemoveMember(Guid userId)
+        /// <returns>A success result with the removed member, or failure if the user is not a member or is the owner.</returns>
+        public Result<WorkspaceMember> RemoveMember(Guid userId)
         {
             if (userId == OwnerId)
             {
-                return Result.Failure(new InvalidArgumentError("Cannot remove the workspace owner from membership."));
+                return Result<WorkspaceMember>.Failure(new InvalidArgumentError("Cannot remove the workspace owner from membership."));
             }
 
             var member = Members.FirstOrDefault(m => m.UserId == userId);
             if (member is null)
             {
-                return Result.Failure(new NotFoundError($"User '{userId}' is not a member of this workspace."));
+                return Result<WorkspaceMember>.Failure(new NotFoundError($"User '{userId}' is not a member of this workspace."));
             }
 
             Members.Remove(member);
             OnModify();
-            return Result.Success();
+            return Result<WorkspaceMember>.Success(member);
         }
     }
 }

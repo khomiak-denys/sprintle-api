@@ -20,7 +20,9 @@ var usersApi = builder.AddProject<Projects.Users_API>("users-api")
 
 var workspacesApi = builder.AddProject<Projects.Workspaces_API>("workspaces-api")
     .WithReference(workspacesDb)
-    .WaitFor(workspacesDb);
+    .WithReference(usersApi)
+    .WaitFor(workspacesDb)
+    .WaitFor(usersApi);
 
 var gateway = builder.AddProject<Projects.gateway>("gateway")
     .WithReference(usersApi)
