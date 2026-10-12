@@ -7,13 +7,16 @@ using Microsoft.AspNetCore.Mvc;
 using ServiceDefaults.ErrorHandling;
 using Swashbuckle.AspNetCore.Annotations;
 using Workspaces.API.Tasks.Requests;
+using Workspaces.Application.Tasks.AddComment;
 using Workspaces.Application.Tasks.Approve;
 using Workspaces.Application.Tasks.Assign;
 using Workspaces.Application.Tasks.Cancel;
 using Workspaces.Application.Tasks.Close;
+using Workspaces.Application.Tasks.DeleteComment;
 using Workspaces.Application.Tasks.DTOs;
 using Workspaces.Application.Tasks.GetAll;
 using Workspaces.Application.Tasks.GetById;
+using Workspaces.Application.Tasks.GetComments;
 using Workspaces.Application.Tasks.GetMy;
 using Workspaces.Application.Tasks.SubmitForReview;
 
@@ -275,6 +278,80 @@ namespace Workspaces.API.Tasks
 
             var isAdmin = User.IsInRole("Admin");
             var command = new CancelTaskCommand(id, userId, isAdmin);
+            var result = await _mediator.Send(command, ct);
+
+            return result.Match(NoContent(), error => this.ToActionResult(error));
+        }
+
+        [HttpGet("{id:guid}/comments")]
+        [SwaggerOperation(Summary = "Gets paginated comments for a task")]
+        [ProducesResponseType(typeof(PaginationResult<TaskCommentResult>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetComments(
+            Guid id,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken ct = default)
+        {
+            var userId = GetUserId();
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized();
+            }
+
+            var isAdmin = User.IsInRole("Admin");
+            var query = new GetTaskCommentsQuery(id, userId, isAdmin, page, pageSize);
+            var result = await _mediator.Send(query, ct);
+
+            return result.Match(Ok(result.Value), error => this.ToActionResult(error));
+        }
+
+        [HttpPost("{id:guid}/comments")]
+        [SwaggerOperation(Summary = "Adds a comment to a task")]
+        [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> AddComment(
+            Guid id,
+            [FromBody] AddCommentRequest request,
+            CancellationToken ct)
+        {
+            var userId = GetUserId();
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized();
+            }
+
+            var isAdmin = User.IsInRole("Admin");
+            var command = request.ToCommand(id, userId, isAdmin);
+            var result = await _mediator.Send(command, ct);
+
+            return result.Match(Ok(result.Value), error => this.ToActionResult(error));
+        }
+
+        [HttpDelete("{id:guid}/comments/{commentId:guid}")]
+        [SwaggerOperation(Summary = "Deletes a comment from a task")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteComment(
+            Guid id,
+            Guid commentId,
+            CancellationToken ct)
+        {
+            var userId = GetUserId();
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized();
+            }
+
+            var isAdmin = User.IsInRole("Admin");
+            var command = new DeleteCommentCommand(id, commentId, userId, isAdmin);
             var result = await _mediator.Send(command, ct);
 
             return result.Match(NoContent(), error => this.ToActionResult(error));
