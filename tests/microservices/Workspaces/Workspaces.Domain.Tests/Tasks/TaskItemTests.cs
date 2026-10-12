@@ -9,6 +9,33 @@ namespace Workspaces.Domain.Tests.Tasks
     public class TaskItemTests
     {
         [Fact]
+        public void Create_Should_SetStatusToInProgress_When_AssigneeIdIsProvided()
+        {
+            // Arrange
+            var assigneeId = Guid.NewGuid();
+
+            // Act
+            var task = TaskItem.Create(Guid.NewGuid(), "Task with Assignee", null, Priority.High, null, assigneeId, Guid.NewGuid());
+
+            // Assert
+            task.Status.Should().Be(TaskStatus.InProgress);
+            task.AssigneeId.Should().Be(assigneeId);
+            task.GetAvailableTransitions().Should().Equal(TaskAction.SubmitForReview, TaskAction.Cancel);
+        }
+
+        [Fact]
+        public void Create_Should_SetStatusToTodo_When_AssigneeIdIsNull()
+        {
+            // Act
+            var task = TaskItem.Create(Guid.NewGuid(), "Unassigned Task", null, Priority.Low, null, null, Guid.NewGuid());
+
+            // Assert
+            task.Status.Should().Be(TaskStatus.Todo);
+            task.AssigneeId.Should().BeNull();
+            task.GetAvailableTransitions().Should().Equal(TaskAction.Assign, TaskAction.Cancel);
+        }
+
+        [Fact]
         public void GetAvailableTransitions_Should_ReturnAssignAndCancel_When_StatusIsTodo()
         {
             // Arrange
@@ -188,6 +215,20 @@ namespace Workspaces.Domain.Tests.Tasks
             // Assert
             result.IsFailure.Should().BeTrue();
             result.Error.Should().BeOfType<InvalidArgumentError>();
+        }
+
+        [Fact]
+        public void ChangePriority_Should_UpdatePriority_When_Called()
+        {
+            // Arrange
+            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Low, null, null, Guid.NewGuid());
+
+            // Act
+            task.ChangePriority(Priority.Critical);
+
+            // Assert
+            task.Priority.Should().Be(Priority.Critical);
+            task.UpdatedAt.Should().NotBeNull();
         }
     }
 }

@@ -113,7 +113,9 @@ namespace Workspaces.Application.Tests.Tasks.Create
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Value.Should().NotBeEmpty();
-            _taskRepository.AddedTasks.Should().ContainSingle(t => t.Id == result.Value);
+            var createdTask = _taskRepository.AddedTasks.Single(t => t.Id == result.Value);
+            createdTask.Status.Should().Be(TaskStatus.InProgress);
+            createdTask.AssigneeId.Should().Be(assigneeId);
             _uow.SaveCount.Should().Be(1);
         }
 
@@ -141,7 +143,9 @@ namespace Workspaces.Application.Tests.Tasks.Create
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Value.Should().NotBeEmpty();
-            _taskRepository.AddedTasks.Should().ContainSingle(t => t.Id == result.Value);
+            var createdTask = _taskRepository.AddedTasks.Single(t => t.Id == result.Value);
+            createdTask.Status.Should().Be(TaskStatus.Todo);
+            createdTask.AssigneeId.Should().BeNull();
             _uow.SaveCount.Should().Be(1);
         }
 
