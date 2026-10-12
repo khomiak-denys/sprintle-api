@@ -77,21 +77,6 @@ namespace Workspaces.Application.Workspaces.Members.GetMembers
 
             var results = usersMap.Values.ToList();
 
-            if (string.IsNullOrWhiteSpace(query.Search))
-            {
-                foreach (var memberId in memberUserIds)
-                {
-                    if (!usersMap.ContainsKey(memberId))
-                    {
-                        results.Add(new UserResult(
-                            memberId,
-                            string.Empty,
-                            "Unknown",
-                            null));
-                    }
-                }
-            }
-
             var totalCount = results.Count;
             var effectivePage = Math.Max(1, query.Page);
             var effectivePageSize = Math.Max(1, query.PageSize);
