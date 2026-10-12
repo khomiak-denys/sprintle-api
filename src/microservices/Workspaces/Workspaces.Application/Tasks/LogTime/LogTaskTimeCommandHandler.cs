@@ -29,6 +29,11 @@ namespace Workspaces.Application.Tasks.LogTime
                 return Result.Failure(new NotFoundError($"Task '{command.TaskId}' was not found."));
             }
 
+            if (!task.AssigneeId.HasValue || task.AssigneeId.Value != command.UserId)
+            {
+                return Result.Failure(new ForbiddenError("Only the assigned user can log time on this task."));
+            }
+
             var timeLog = task.LogTime(command.UserId, command.MinutesSpent, command.Description, command.LoggedDate);
             await _taskRepository.AddTimeLogAsync(timeLog, cancellationToken);
 

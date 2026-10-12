@@ -43,14 +43,15 @@ namespace Workspaces.Application.Workspaces.Members.GetMembers
                     new NotFoundError($"Workspace '{query.WorkspaceId}' was not found."));
             }
 
-            var isMemberOrOwner = workspace.OwnerId == query.RequestingUserId ||
-                                 workspace.Members.Any(m => m.UserId == query.RequestingUserId);
-
-            if (!query.IsAdmin && !isMemberOrOwner)
+            if (!query.IsAdmin)
             {
-                LogUnauthorizedAccess(query.RequestingUserId, query.WorkspaceId);
-                return Result<PaginationResult<UserResult>>.Failure(
-                    new ForbiddenError("Only workspace members or an admin can view workspace members."));
+                var isMember = await _workspaceRepository.IsMemberAsync(query.WorkspaceId, query.RequestingUserId, cancellationToken);
+                if (!isMember)
+                {
+                    LogUnauthorizedAccess(query.RequestingUserId, query.WorkspaceId);
+                    return Result<PaginationResult<UserResult>>.Failure(
+                        new ForbiddenError("Only workspace members or an admin can view workspace members."));
+                }
             }
 
             var memberUserIds = workspace.Members

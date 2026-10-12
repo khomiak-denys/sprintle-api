@@ -34,6 +34,12 @@ namespace Workspaces.Application.Workspaces.Members.AddMember
                 return Result.Failure(new ForbiddenError("Only the workspace owner or an admin can add members."));
             }
 
+            var isAlreadyMember = await _workspaceRepository.IsMemberAsync(command.WorkspaceId, command.MemberUserId, cancellationToken);
+            if (isAlreadyMember)
+            {
+                return Result.Failure(new AlreadyExistsError($"User '{command.MemberUserId}' is already a member of this workspace."));
+            }
+
             var addResult = workspace.AddMember(command.MemberUserId);
             if (addResult.IsFailure)
             {

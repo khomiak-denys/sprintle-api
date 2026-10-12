@@ -54,5 +54,12 @@ namespace Workspaces.Domain.Workspaces
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         Task RemoveMemberAsync(WorkspaceMember member, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        /// <summary>Checks whether a user is an owner or member of a workspace.</summary>
+        /// <param name="workspaceId">The workspace identifier.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns><c>true</c> if the user is a member or owner of the workspace; otherwise, <c>false</c>.</returns>
+        Task<bool> IsMemberAsync(Guid workspaceId, Guid userId, CancellationToken cancellationToken) => Task.FromResult(false);
     }
 }

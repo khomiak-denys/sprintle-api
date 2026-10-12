@@ -11,6 +11,7 @@ using Workspaces.Application.Tasks.AddComment;
 using Workspaces.Application.Tasks.Approve;
 using Workspaces.Application.Tasks.Assign;
 using Workspaces.Application.Tasks.Cancel;
+using Workspaces.Application.Tasks.ChangePriority;
 using Workspaces.Application.Tasks.Close;
 using Workspaces.Application.Tasks.DeleteComment;
 using Workspaces.Application.Tasks.DTOs;
@@ -99,6 +100,7 @@ namespace Workspaces.API.Tasks
         [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Create([FromBody] CreateTaskRequest request, CancellationToken ct)
         {
             var userId = GetUserId();
@@ -107,7 +109,8 @@ namespace Workspaces.API.Tasks
                 return Unauthorized();
             }
 
-            var command = request.ToCommand(userId);
+            var isAdmin = User.IsInRole("Admin");
+            var command = request.ToCommand(userId, isAdmin);
             var result = await _mediator.Send(command, ct);
 
             return result.Match(Ok(result.Value), error => this.ToActionResult(error));
@@ -128,6 +131,28 @@ namespace Workspaces.API.Tasks
             }
 
             var command = request.ToCommand(id, userId);
+            var result = await _mediator.Send(command, ct);
+
+            return result.Match(NoContent(), error => this.ToActionResult(error));
+        }
+
+        [HttpPatch("{id:guid}/priority")]
+        [SwaggerOperation(Summary = "Changes the priority of a task")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ChangePriority(Guid id, [FromBody] ChangeTaskPriorityRequest request, CancellationToken ct)
+        {
+            var userId = GetUserId();
+            if (userId == Guid.Empty)
+            {
+                return Unauthorized();
+            }
+
+            var isAdmin = User.IsInRole("Admin");
+            var command = request.ToCommand(id, userId, isAdmin);
             var result = await _mediator.Send(command, ct);
 
             return result.Match(NoContent(), error => this.ToActionResult(error));

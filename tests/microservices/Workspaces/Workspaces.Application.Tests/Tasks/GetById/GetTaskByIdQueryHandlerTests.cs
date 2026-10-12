@@ -5,6 +5,7 @@ using Workspaces.Application.Abstractions;
 using Workspaces.Application.Tasks.DTOs;
 using Workspaces.Application.Tasks.GetById;
 using Workspaces.Domain.Tasks;
+using Workspaces.Domain.Workspaces;
 using TaskStatus = Workspaces.Domain.Tasks.TaskStatus;
 using Xunit;
 
@@ -13,12 +14,13 @@ namespace Workspaces.Application.Tests.Tasks.GetById
     public class GetTaskByIdQueryHandlerTests
     {
         private readonly FakeTaskRepository _taskRepository = new();
+        private readonly FakeWorkspaceRepository _workspaceRepository = new();
         private readonly FakeUsersApiClient _usersApiClient = new();
         private readonly GetTaskByIdQueryHandler _handler;
 
         public GetTaskByIdQueryHandlerTests()
         {
-            _handler = new GetTaskByIdQueryHandler(_taskRepository, _usersApiClient);
+            _handler = new GetTaskByIdQueryHandler(_taskRepository, _workspaceRepository, _usersApiClient);
         }
 
         [Fact]
@@ -36,7 +38,7 @@ namespace Workspaces.Application.Tests.Tasks.GetById
         }
 
         [Fact]
-        public async Task Handle_Should_ReturnForbidden_When_UserIsNotAllowed()
+        public async Task Handle_Should_ReturnForbidden_When_UserIsNotWorkspaceMemberAndNotAdmin()
         {
             // Arrange
             var creatorId = Guid.NewGuid();
@@ -54,6 +56,7 @@ namespace Workspaces.Application.Tests.Tasks.GetById
             // Assert
             result.IsFailure.Should().BeTrue();
             result.Error.Should().BeOfType<ForbiddenError>();
+            result.Error.Message.Should().Be("You are not allowed to view this task.");
         }
 
         [Fact]
@@ -65,6 +68,7 @@ namespace Workspaces.Application.Tests.Tasks.GetById
 
             var task = TaskItem.Create(Guid.NewGuid(), "Test Task", "Test Desc", Priority.High, DateTime.UtcNow.AddDays(3), assigneeId, creatorId);
             _taskRepository.TaskToReturn = task;
+            _workspaceRepository.Members.Add((task.WorkspaceId, creatorId));
 
             var creatorResult = new UserResult(creatorId, "creator@test.com", "creator_user", "Creator User");
             var assigneeResult = new UserResult(assigneeId, "assignee@test.com", "assignee_user", "Assignee User");
@@ -87,6 +91,37 @@ namespace Workspaces.Application.Tests.Tasks.GetById
             result.Value.AssignedUser.Should().Be(assigneeResult);
             result.Value.CreatedBy.Id.Should().Be(creatorId);
             result.Value.Assignee!.Id.Should().Be(assigneeId);
+        }
+
+        [Fact]
+        public async Task Handle_Should_ReturnTaskDetails_When_UserIsWorkspaceMember()
+        {
+            // Arrange
+            var creatorId = Guid.NewGuid();
+            var assigneeId = Guid.NewGuid();
+            var memberId = Guid.NewGuid();
+
+            var task = TaskItem.Create(Guid.NewGuid(), "Member Task", "Desc", Priority.Medium, null, assigneeId, creatorId);
+            _taskRepository.TaskToReturn = task;
+            _workspaceRepository.Members.Add((task.WorkspaceId, memberId));
+
+            var creatorResult = new UserResult(creatorId, "creator@test.com", "creator_user", "Creator User");
+            var assigneeResult = new UserResult(assigneeId, "assignee@test.com", "assignee_user", "Assignee User");
+
+            _usersApiClient.Users[creatorId] = creatorResult;
+            _usersApiClient.Users[assigneeId] = assigneeResult;
+
+            var query = new GetTaskByIdQuery(task.Id, memberId, false);
+
+            // Act
+            var result = await _handler.Handle(query, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Should().NotBeNull();
+            result.Value.Title.Should().Be("Member Task");
+            result.Value.CreatedBy.Should().Be(creatorResult);
+            result.Value.Assignee.Should().Be(assigneeResult);
         }
 
         [Fact]
@@ -118,10 +153,10 @@ namespace Workspaces.Application.Tests.Tasks.GetById
         {
             // Arrange
             var creatorId = Guid.NewGuid();
-            var nonAdminOtherUserId = Guid.NewGuid();
 
             var task = TaskItem.Create(Guid.NewGuid(), "Todo Task", null, Priority.Medium, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
+            _workspaceRepository.Members.Add((task.WorkspaceId, creatorId));
 
             var query = new GetTaskByIdQuery(task.Id, creatorId, false);
 
@@ -133,6 +168,27 @@ namespace Workspaces.Application.Tests.Tasks.GetById
             result.Value.AvailableTransitions.Should().NotBeNull();
             result.Value.AvailableTransitions!.Should().Contain(t => t.Action == TaskAction.Assign && t.IsAllowed);
             result.Value.AvailableTransitions!.Should().Contain(t => t.Action == TaskAction.Cancel && t.IsAllowed);
+        }
+
+        private sealed class FakeWorkspaceRepository : IWorkspaceRepository
+        {
+            public HashSet<(Guid WorkspaceId, Guid UserId)> Members { get; } = new();
+
+            public Task<Workspace?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
+                Task.FromResult<Workspace?>(null);
+
+            public Task<PaginationResult<Workspace>> GetByMemberAsync(Guid userId, string? name, int page, int pageSize, CancellationToken cancellationToken) =>
+                Task.FromResult(PaginationResult<Workspace>.Create(Array.Empty<Workspace>(), page, pageSize, 0));
+
+            public Task<PaginationResult<Workspace>> GetAllAsync(string? name, int page, int pageSize, CancellationToken cancellationToken) =>
+                Task.FromResult(PaginationResult<Workspace>.Create(Array.Empty<Workspace>(), page, pageSize, 0));
+
+            public Task AddAsync(Workspace workspace, CancellationToken cancellationToken) => Task.CompletedTask;
+
+            public Task RemoveAsync(Workspace workspace, CancellationToken cancellationToken) => Task.CompletedTask;
+
+            public Task<bool> IsMemberAsync(Guid workspaceId, Guid userId, CancellationToken cancellationToken) =>
+                Task.FromResult(Members.Contains((workspaceId, userId)));
         }
 
         private sealed class FakeTaskRepository : ITaskRepository

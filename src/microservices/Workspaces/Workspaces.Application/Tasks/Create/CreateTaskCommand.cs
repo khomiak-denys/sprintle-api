@@ -15,6 +15,7 @@ namespace Workspaces.Application.Tasks.Create
     /// <param name="Deadline">Optional future deadline.</param>
     /// <param name="AssigneeId">Optional user id to assign the task to.</param>
     /// <param name="TagNames">Set of tag names to associate with the task.</param>
+    /// <param name="IsAdmin">Whether the requesting user has administrator privileges.</param>
     public record CreateTaskCommand(
         Guid WorkspaceId,
         Guid CreatedById,
@@ -23,5 +24,6 @@ namespace Workspaces.Application.Tasks.Create
         Priority Priority,
         DateTime? Deadline,
         Guid? AssigneeId,
-        IEnumerable<string> TagNames) : ICommand<Result<Guid>>;
+        IEnumerable<string> TagNames,
+        bool IsAdmin = false) : ICommand<Result<Guid>>;
 }

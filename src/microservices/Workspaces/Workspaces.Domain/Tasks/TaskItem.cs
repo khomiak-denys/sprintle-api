@@ -62,7 +62,7 @@ namespace Workspaces.Domain.Tasks
             Deadline = deadline;
             AssigneeId = assigneeId;
             CreatedById = createdById;
-            Status = TaskStatus.Todo;
+            Status = assigneeId.HasValue ? TaskStatus.InProgress : TaskStatus.Todo;
         }
 
         /// <summary>
@@ -73,9 +73,9 @@ namespace Workspaces.Domain.Tasks
         /// <param name="description">Optional task description.</param>
         /// <param name="priority">Task priority level.</param>
         /// <param name="deadline">Optional deadline.</param>
-        /// <param name="assigneeId">Optional assignee user identifier.</param>
+        /// <param name="assigneeId">Optional assignee user identifier. When provided, the task transitions to 'InProgress'; otherwise 'Todo'.</param>
         /// <param name="createdById">The creator user identifier.</param>
-        /// <returns>A new <see cref="TaskItem"/> instance in 'Todo' status.</returns>
+        /// <returns>A new <see cref="TaskItem"/> instance.</returns>
         public static TaskItem Create(
             Guid workspaceId,
             string title,
@@ -113,6 +113,16 @@ namespace Workspaces.Domain.Tasks
             Description = description;
             Priority = priority;
             Deadline = deadline;
+            OnModify();
+        }
+
+        /// <summary>
+        /// Updates the priority of the task.
+        /// </summary>
+        /// <param name="priority">The new priority level.</param>
+        public void ChangePriority(Priority priority)
+        {
+            Priority = priority;
             OnModify();
         }
 

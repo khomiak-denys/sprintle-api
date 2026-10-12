@@ -96,5 +96,13 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
             _context.WorkspaceMembers.Remove(member);
             return Task.CompletedTask;
         }
+
+        /// <inheritdoc/>
+        public async Task<bool> IsMemberAsync(Guid workspaceId, Guid userId, CancellationToken cancellationToken)
+        {
+            return await _context.Workspaces
+                .AsNoTracking()
+                .AnyAsync(w => w.Id == workspaceId && (w.OwnerId == userId || w.Members.Any(m => m.UserId == userId)), cancellationToken);
+        }
     }
 }
