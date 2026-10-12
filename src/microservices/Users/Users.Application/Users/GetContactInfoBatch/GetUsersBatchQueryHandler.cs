@@ -30,6 +30,7 @@ namespace Users.Application.Users.GetContactInfoBatch
             return _userService.GetContactInfoBatchAsync(
                 request.UserIds,
                 request.Search,
+                request.IsWorkspaceMember,
                 request.Page,
                 request.PageSize,
                 cancellationToken);

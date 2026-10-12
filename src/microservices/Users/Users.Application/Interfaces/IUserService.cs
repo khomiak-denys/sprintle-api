@@ -17,10 +17,14 @@ namespace Users.Application.Interfaces
         Task<Result<UserContactInfoResult>> GetContactInfoByIdAsync(Guid userId, CancellationToken ct);
 
         /// <summary>
-        /// Retrieves paginated contact information for a collection of user identifiers with optional search filter.
+        /// Retrieves paginated contact information for a collection of user identifiers with optional search and workspace membership filter.
         /// </summary>
         /// <param name="userIds">The collection of user identifiers.</param>
         /// <param name="search">Optional search term matching username, full name, or email.</param>
+        /// <param name="isWorkspaceMember">
+        /// Optional workspace membership flag. When <c>false</c>, returns non-admin users excluding <paramref name="userIds"/>;
+        /// when <c>true</c> or <c>null</c>, returns users matching <paramref name="userIds"/>.
+        /// </param>
         /// <param name="page">The page number.</param>
         /// <param name="pageSize">The page size.</param>
         /// <param name="ct">The cancellation token.</param>
@@ -28,6 +32,7 @@ namespace Users.Application.Interfaces
         Task<Result<PaginationResult<UserContactInfoResult>>> GetContactInfoBatchAsync(
             IReadOnlyCollection<Guid> userIds,
             string? search,
+            bool? isWorkspaceMember,
             int page,
             int pageSize,
             CancellationToken ct);

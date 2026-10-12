@@ -7,6 +7,7 @@ using Users.Application.DTOs;
 using Users.Application.Interfaces;
 using Users.Infrastructure.Identity;
 using Users.Infrastructure.Persistence;
+using Users.Infrastructure.Persistence.Configurations;
 
 namespace Users.Infrastructure.Services
 {
@@ -65,6 +66,7 @@ namespace Users.Infrastructure.Services
         public async Task<Result<PaginationResult<UserContactInfoResult>>> GetContactInfoBatchAsync(
             IReadOnlyCollection<Guid> userIds,
             string? search,
+            bool? isWorkspaceMember,
             int page,
             int pageSize,
             CancellationToken ct)
@@ -72,21 +74,38 @@ namespace Users.Infrastructure.Services
             var effectivePage = page < 1 ? 1 : page;
             var effectivePageSize = pageSize < 1 ? 10 : pageSize;
 
-            if (userIds == null || userIds.Count == 0)
+            IQueryable<ApplicationUser> query;
+
+            if (isWorkspaceMember == false)
             {
-                var emptyResult = PaginationResult<UserContactInfoResult>.Create(
-                    Array.Empty<UserContactInfoResult>(),
-                    effectivePage,
-                    effectivePageSize,
-                    0);
-                return Result<PaginationResult<UserContactInfoResult>>.Success(emptyResult);
+                query = _dbContext.Users.AsNoTracking();
+
+                if (userIds != null && userIds.Count > 0)
+                {
+                    var distinctIds = userIds.Distinct().ToList();
+                    query = query.Where(u => !distinctIds.Contains(u.Id));
+                }
+
+                var adminRoleId = RoleConfiguration.AdminRoleId;
+                query = query.Where(u => !_dbContext.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == adminRoleId));
             }
+            else
+            {
+                if (userIds == null || userIds.Count == 0)
+                {
+                    var emptyResult = PaginationResult<UserContactInfoResult>.Create(
+                        Array.Empty<UserContactInfoResult>(),
+                        effectivePage,
+                        effectivePageSize,
+                        0);
+                    return Result<PaginationResult<UserContactInfoResult>>.Success(emptyResult);
+                }
 
-            var distinctIds = userIds.Distinct().ToList();
-
-            var query = _dbContext.Users
-                .AsNoTracking()
-                .Where(u => distinctIds.Contains(u.Id));
+                var distinctIds = userIds.Distinct().ToList();
+                query = _dbContext.Users
+                    .AsNoTracking()
+                    .Where(u => distinctIds.Contains(u.Id));
+            }
 
             if (!string.IsNullOrWhiteSpace(search))
             {
