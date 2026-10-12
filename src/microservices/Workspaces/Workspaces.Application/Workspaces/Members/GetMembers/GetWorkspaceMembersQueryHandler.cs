@@ -76,24 +76,30 @@ namespace Workspaces.Application.Workspaces.Members.GetMembers
                 }
             }
 
-            var members = workspace.Members.AsEnumerable();
-            if (!string.IsNullOrWhiteSpace(query.Search))
-            {
-                members = members.Where(m => usersMap.ContainsKey(m.UserId));
-            }
-
-            var results = members
-                .Select(m =>
-                {
-                    var hasUser = usersMap.TryGetValue(m.UserId, out var user);
-                    return new WorkspaceMemberResult(
-                        m.UserId,
-                        hasUser ? user!.Email : string.Empty,
-                        hasUser ? user!.UserName : "Unknown",
-                        hasUser ? user!.FullName : null,
-                        m.UserId == workspace.OwnerId);
-                })
+            var results = usersMap.Values
+                .Select(user => new WorkspaceMemberResult(
+                    user.Id,
+                    user.Email,
+                    user.UserName,
+                    user.FullName,
+                    user.Id == workspace.OwnerId))
                 .ToList();
+
+            if (string.IsNullOrWhiteSpace(query.Search))
+            {
+                foreach (var memberId in memberUserIds)
+                {
+                    if (!usersMap.ContainsKey(memberId))
+                    {
+                        results.Add(new WorkspaceMemberResult(
+                            memberId,
+                            string.Empty,
+                            "Unknown",
+                            null,
+                            memberId == workspace.OwnerId));
+                    }
+                }
+            }
 
             var totalCount = results.Count;
             var effectivePage = Math.Max(1, query.Page);
