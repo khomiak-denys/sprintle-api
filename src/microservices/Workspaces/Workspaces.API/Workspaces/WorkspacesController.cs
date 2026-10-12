@@ -239,7 +239,7 @@ namespace Workspaces.API.Workspaces
         /// <returns>A paginated list of potential workspace members.</returns>
         [HttpGet("{id:guid}/members/potential")]
         [SwaggerOperation(Summary = "Gets paginated potential members of a workspace with optional search (Workspace owner or admin only)")]
-        [ProducesResponseType(typeof(PaginationResult<PotentialWorkspaceMemberResult>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginationResult<WorkspaceMemberResult>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]

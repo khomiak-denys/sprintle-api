@@ -21,5 +21,5 @@ namespace Workspaces.Application.Workspaces.Members.GetPotentialMembers
         bool IsAdmin,
         string? Search = null,
         int Page = 1,
-        int PageSize = 10) : IQuery<Result<PaginationResult<PotentialWorkspaceMemberResult>>>;
+        int PageSize = 10) : IQuery<Result<PaginationResult<WorkspaceMemberResult>>>;
 }
