@@ -62,6 +62,11 @@ namespace Workspaces.Infrastructure.Persistence.Configurations
                 .WithOne(tt => tt.Task)
                 .HasForeignKey(tt => tt.TaskId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(t => t.Comments)
+                .WithOne(c => c.Task)
+                .HasForeignKey(c => c.TaskId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
