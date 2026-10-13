@@ -5,8 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Notifications.Application.Abstractions;
 using Notifications.Domain.Notifications;
 using Notifications.Infrastructure.Consumers;
+using Notifications.Infrastructure.Emails;
 using Notifications.Infrastructure.Persistence;
 using Notifications.Infrastructure.Persistence.Repositories;
+using Resend;
 
 namespace Notifications.Infrastructure
 {
@@ -17,7 +19,7 @@ namespace Notifications.Infrastructure
     {
         /// <summary>
         /// Registers persistence services, database contexts, repositories, message bus connection manager,
-        /// and background consumers into the service collection.
+        /// background consumers, and email services into the service collection.
         /// </summary>
         /// <param name="services">The service collection to add services to.</param>
         /// <param name="configuration">Application configuration.</param>
@@ -34,6 +36,17 @@ namespace Notifications.Infrastructure
 
             services.AddMessageBus(configuration);
             services.AddHostedService<UsersConsumer>();
+
+            services.Configure<ResendOptions>(configuration.GetSection(ResendOptions.SectionName));
+            services.Configure<FrontendOptions>(configuration.GetSection(FrontendOptions.SectionName));
+
+            var apiToken = configuration.GetSection(ResendOptions.SectionName)["ApiToken"] ?? string.Empty;
+            services.AddResend(options =>
+            {
+                options.ApiToken = apiToken;
+            });
+
+            services.AddTransient<IEmailSender, ResendEmailSender>();
 
             return services;
         }

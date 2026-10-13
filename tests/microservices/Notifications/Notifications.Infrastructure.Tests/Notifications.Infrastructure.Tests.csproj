@@ -12,6 +12,7 @@
     <PackageReference Include="FluentAssertions" Version="*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.12" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
+    <PackageReference Include="NSubstitute" Version="6.2.0" />
     <PackageReference Include="xunit" Version="*" />
     <PackageReference Include="xunit.runner.visualstudio" Version="*">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
