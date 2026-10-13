@@ -23,6 +23,8 @@
   <Folder Name="/src/shared-libs/">
     <Project Path="src/shared-libs/AppHost/AppHost.csproj" Id="e581a804-5b5d-4dee-bd0e-b95314a5be3d" />
     <Project Path="src/shared-libs/DomainFramework/DomainFramework.csproj" />
+    <Project Path="src/shared-libs/MessageBus/MessageBus.csproj" />
+    <Project Path="src/shared-libs/Messaging.Contracts/Messaging.Contracts.csproj" />
     <Project Path="src/shared-libs/Messaging/Messaging.csproj" />
     <Project Path="src/shared-libs/MigrationsExtensions/MigrationsExtensions.csproj" Id="4f64aedb-e5dd-414b-8a43-a523a346fbb1" />
     <Project Path="src/shared-libs/ServiceDefaults/ServiceDefaults.csproj" Id="6c7bf7a1-8c92-4378-b559-370d8aa25f27" />
