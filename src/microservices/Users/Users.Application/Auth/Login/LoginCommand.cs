@@ -1,24 +1,13 @@
 using DomainFramework.Results;
 using Messaging.Abstractions;
 using Users.Application.DTOs;
-using Users.Application.Interfaces;
 
 namespace Users.Application.Auth.Login
 {
+    /// <summary>
+    /// Command to log in a user with email and password.
+    /// </summary>
+    /// <param name="Email">The user's email address.</param>
+    /// <param name="Password">The user's password.</param>
     public record LoginCommand(string Email, string Password) : ICommand<Result<AuthTokensResult>>;
-
-    public class LoginCommandHandler : ICommandHandler<LoginCommand, Result<AuthTokensResult>>
-    {
-        private readonly IAuthService _authService;
-
-        public LoginCommandHandler(IAuthService authService)
-        {
-            _authService = authService;
-        }
-
-        public Task<Result<AuthTokensResult>> Handle(LoginCommand command, CancellationToken cancellationToken)
-        {
-            return _authService.LoginAsync(command.Email, command.Password, cancellationToken);
-        }
-    }
 }
