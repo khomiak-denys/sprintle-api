@@ -49,7 +49,7 @@ namespace Users.Infrastructure.Services
             var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
             var refreshToken = GenerateRefreshToken();
 
-            return new AuthTokensResult(accessToken, refreshToken, expiry);
+            return new AuthTokensResult(accessToken, refreshToken, expiry, user.Id);
         }
 
         public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)

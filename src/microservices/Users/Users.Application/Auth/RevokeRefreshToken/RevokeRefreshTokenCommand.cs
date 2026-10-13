@@ -1,23 +1,11 @@
 using DomainFramework.Results;
 using Messaging.Abstractions;
-using Users.Application.Interfaces;
 
 namespace Users.Application.Auth.RevokeRefreshToken
 {
+    /// <summary>
+    /// Command to revoke refresh tokens for a specified user.
+    /// </summary>
+    /// <param name="UserId">The unique identifier of the user whose refresh token should be revoked.</param>
     public record RevokeRefreshTokenCommand(Guid UserId) : ICommand<Result>;
-
-    public class RevokeRefreshTokenCommandHandler : ICommandHandler<RevokeRefreshTokenCommand, Result>
-    {
-        private readonly IAuthService _authService;
-
-        public RevokeRefreshTokenCommandHandler(IAuthService authService)
-        {
-            _authService = authService;
-        }
-
-        public Task<Result> Handle(RevokeRefreshTokenCommand command, CancellationToken cancellationToken)
-        {
-            return _authService.RevokeRefreshTokenAsync(command.UserId, cancellationToken);
-        }
-    }
 }
