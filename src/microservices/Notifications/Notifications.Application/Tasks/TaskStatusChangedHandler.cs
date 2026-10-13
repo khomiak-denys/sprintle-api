@@ -65,12 +65,12 @@ namespace Notifications.Application.Tasks
 
             foreach (var (userId, email, name) in recipients)
             {
-                var notification = await _notificationRepository.GetByUserIdAndTypeAsync(
+                var isEnabled = await _notificationRepository.IsEnabledAsync(
                     userId,
                     NotificationType.Email,
                     cancellationToken);
 
-                if (notification is not null && !notification.Enabled)
+                if (!isEnabled)
                 {
                     LogNotificationDisabled(userId, @event.TaskId, @event.NewStatus);
                     continue;

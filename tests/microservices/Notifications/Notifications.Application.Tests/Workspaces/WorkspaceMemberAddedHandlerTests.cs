@@ -48,9 +48,8 @@ namespace Notifications.Application.Tests.Workspaces
             var workspaceName = "Engineering Team";
             var managerName = "Manager Name";
 
-            var notification = Notification.Create(memberId, memberEmail, "member_username", NotificationType.Email, enabled: true);
-            _notificationRepository.GetByUserIdAndTypeAsync(memberId, NotificationType.Email, Arg.Any<CancellationToken>())
-                .Returns(notification);
+            _notificationRepository.IsEnabledAsync(memberId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(true);
 
             var @event = new WorkspaceMemberAdded(
                 workspaceId,
@@ -93,15 +92,15 @@ namespace Notifications.Application.Tests.Workspaces
         }
 
         [Fact]
-        public async Task HandleAsync_Should_SendEmailSuccessfully_When_NoNotificationSettingsFound()
+        public async Task HandleAsync_Should_SkipSendingEmail_When_NotificationNotEnabledInDb()
         {
             // Arrange
             var workspaceId = Guid.NewGuid();
             var memberId = Guid.NewGuid();
             var memberEmail = "member@example.com";
 
-            _notificationRepository.GetByUserIdAndTypeAsync(memberId, NotificationType.Email, Arg.Any<CancellationToken>())
-                .Returns((Notification?)null);
+            _notificationRepository.IsEnabledAsync(memberId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(false);
 
             var @event = new WorkspaceMemberAdded(
                 workspaceId,
@@ -116,8 +115,8 @@ namespace Notifications.Application.Tests.Workspaces
             await _handler.HandleAsync(@event, CancellationToken.None);
 
             // Assert
-            await _emailSender.Received(1).SendAsync(
-                memberEmail,
+            await _emailSender.DidNotReceive().SendAsync(
+                Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>());
@@ -128,10 +127,9 @@ namespace Notifications.Application.Tests.Workspaces
         {
             // Arrange
             var memberId = Guid.NewGuid();
-            var notification = Notification.Create(memberId, "disabled@example.com", "user", NotificationType.Email, enabled: false);
 
-            _notificationRepository.GetByUserIdAndTypeAsync(memberId, NotificationType.Email, Arg.Any<CancellationToken>())
-                .Returns(notification);
+            _notificationRepository.IsEnabledAsync(memberId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(false);
 
             var @event = new WorkspaceMemberAdded(
                 Guid.NewGuid(),
@@ -166,6 +164,10 @@ namespace Notifications.Application.Tests.Workspaces
 
             var workspaceId = Guid.NewGuid();
             var memberId = Guid.NewGuid();
+
+            _notificationRepository.IsEnabledAsync(memberId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(true);
+
             var @event = new WorkspaceMemberAdded(
                 workspaceId,
                 "Design",

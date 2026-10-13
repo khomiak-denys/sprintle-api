@@ -43,12 +43,12 @@ namespace Notifications.Application.Workspaces
         {
             ArgumentNullException.ThrowIfNull(@event);
 
-            var notification = await _notificationRepository.GetByUserIdAndTypeAsync(
+            var isEnabled = await _notificationRepository.IsEnabledAsync(
                 @event.MemberUserId,
                 NotificationType.Email,
                 cancellationToken);
 
-            if (notification is not null && !notification.Enabled)
+            if (!isEnabled)
             {
                 LogNotificationDisabled(@event.MemberUserId, @event.WorkspaceId);
                 return;

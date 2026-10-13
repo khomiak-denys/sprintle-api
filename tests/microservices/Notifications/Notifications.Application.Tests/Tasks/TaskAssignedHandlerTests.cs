@@ -53,9 +53,8 @@ namespace Notifications.Application.Tests.Tasks
             var priority = "Critical";
             var deadline = new DateTime(2026, 12, 1, 0, 0, 0, DateTimeKind.Utc);
 
-            var notification = Notification.Create(assigneeId, assigneeEmail, "assignee_user", NotificationType.Email, enabled: true);
-            _notificationRepository.GetByUserIdAndTypeAsync(assigneeId, NotificationType.Email, Arg.Any<CancellationToken>())
-                .Returns(notification);
+            _notificationRepository.IsEnabledAsync(assigneeId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(true);
 
             var @event = new TaskAssigned(
                 taskId,
@@ -107,7 +106,7 @@ namespace Notifications.Application.Tests.Tasks
         }
 
         [Fact]
-        public async Task HandleAsync_Should_SendEmailSuccessfully_When_NoNotificationSettingsFound()
+        public async Task HandleAsync_Should_SkipSendingEmail_When_NotificationNotEnabledInDb()
         {
             // Arrange
             var taskId = Guid.NewGuid();
@@ -115,8 +114,8 @@ namespace Notifications.Application.Tests.Tasks
             var assigneeId = Guid.NewGuid();
             var assigneeEmail = "assignee@example.com";
 
-            _notificationRepository.GetByUserIdAndTypeAsync(assigneeId, NotificationType.Email, Arg.Any<CancellationToken>())
-                .Returns((Notification?)null);
+            _notificationRepository.IsEnabledAsync(assigneeId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(false);
 
             var @event = new TaskAssigned(
                 taskId,
@@ -136,8 +135,8 @@ namespace Notifications.Application.Tests.Tasks
             await _handler.HandleAsync(@event, CancellationToken.None);
 
             // Assert
-            await _emailSender.Received(1).SendAsync(
-                assigneeEmail,
+            await _emailSender.DidNotReceive().SendAsync(
+                Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>());
@@ -148,10 +147,9 @@ namespace Notifications.Application.Tests.Tasks
         {
             // Arrange
             var assigneeId = Guid.NewGuid();
-            var notification = Notification.Create(assigneeId, "disabled@example.com", "user", NotificationType.Email, enabled: false);
 
-            _notificationRepository.GetByUserIdAndTypeAsync(assigneeId, NotificationType.Email, Arg.Any<CancellationToken>())
-                .Returns(notification);
+            _notificationRepository.IsEnabledAsync(assigneeId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(false);
 
             var @event = new TaskAssigned(
                 Guid.NewGuid(),
@@ -192,6 +190,10 @@ namespace Notifications.Application.Tests.Tasks
             var taskId = Guid.NewGuid();
             var workspaceId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
+
+            _notificationRepository.IsEnabledAsync(assigneeId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(true);
+
             var @event = new TaskAssigned(
                 taskId,
                 "Task Title",

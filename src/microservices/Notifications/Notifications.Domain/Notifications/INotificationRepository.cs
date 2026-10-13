@@ -32,6 +32,15 @@ namespace Notifications.Domain.Notifications
         Task<Notification?> GetByUserIdAndTypeAsync(Guid userId, NotificationType notificationType, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Asynchronously determines whether notifications are enabled for the specified user and channel type.
+        /// </summary>
+        /// <param name="userId">The unique identifier of the user.</param>
+        /// <param name="notificationType">The notification channel type (defaults to <see cref="NotificationType.Email"/>).</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns><c>true</c> if a notification record exists and is enabled; otherwise, <c>false</c>.</returns>
+        Task<bool> IsEnabledAsync(Guid userId, NotificationType notificationType = NotificationType.Email, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Asynchronously retrieves all notification configurations associated with a specific user.
         /// </summary>
         /// <param name="userId">The user identifier.</param>

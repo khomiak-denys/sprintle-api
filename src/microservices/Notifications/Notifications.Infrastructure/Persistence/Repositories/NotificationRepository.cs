@@ -44,6 +44,18 @@ namespace Notifications.Infrastructure.Persistence.Repositories
         }
 
         /// <inheritdoc/>
+        public async Task<bool> IsEnabledAsync(
+            Guid userId,
+            NotificationType notificationType = NotificationType.Email,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Notifications
+                .AnyAsync(
+                    n => n.UserId == userId && n.NotificationType == notificationType && n.Enabled,
+                    cancellationToken);
+        }
+
+        /// <inheritdoc/>
         public async Task<IReadOnlyList<Notification>> GetAllByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
         {
             return await _context.Notifications

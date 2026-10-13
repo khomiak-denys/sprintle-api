@@ -48,9 +48,8 @@ namespace Notifications.Application.Tests.Tasks
             var requesterName = "Requester Name";
             var assigneeUsername = "developer_alex";
 
-            var notification = Notification.Create(requesterId, requesterEmail, "requester_user", NotificationType.Email, enabled: true);
-            _notificationRepository.GetByUserIdAndTypeAsync(requesterId, NotificationType.Email, Arg.Any<CancellationToken>())
-                .Returns(notification);
+            _notificationRepository.IsEnabledAsync(requesterId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(true);
 
             var @event = new TaskStatusChanged(
                 taskId,
@@ -112,9 +111,8 @@ namespace Notifications.Application.Tests.Tasks
             var assigneeName = "Assignee Developer";
             var managerUsername = "manager_sarah";
 
-            var notification = Notification.Create(assigneeId, assigneeEmail, "assignee_user", NotificationType.Email, enabled: true);
-            _notificationRepository.GetByUserIdAndTypeAsync(assigneeId, NotificationType.Email, Arg.Any<CancellationToken>())
-                .Returns(notification);
+            _notificationRepository.IsEnabledAsync(assigneeId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(true);
 
             var @event = new TaskStatusChanged(
                 taskId,
@@ -168,10 +166,9 @@ namespace Notifications.Application.Tests.Tasks
         {
             // Arrange
             var requesterId = Guid.NewGuid();
-            var notification = Notification.Create(requesterId, "disabled@example.com", "user", NotificationType.Email, enabled: false);
 
-            _notificationRepository.GetByUserIdAndTypeAsync(requesterId, NotificationType.Email, Arg.Any<CancellationToken>())
-                .Returns(notification);
+            _notificationRepository.IsEnabledAsync(requesterId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(false);
 
             var @event = new TaskStatusChanged(
                 Guid.NewGuid(),
@@ -184,6 +181,42 @@ namespace Notifications.Application.Tests.Tasks
                 "changer",
                 requesterId,
                 "disabled@example.com",
+                "Requester",
+                null,
+                null,
+                null);
+
+            // Act
+            await _handler.HandleAsync(@event, CancellationToken.None);
+
+            // Assert
+            await _emailSender.DidNotReceive().SendAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task HandleAsync_Should_SkipSendingEmail_When_NotificationNotEnabledInDb()
+        {
+            // Arrange
+            var requesterId = Guid.NewGuid();
+
+            _notificationRepository.IsEnabledAsync(requesterId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(false);
+
+            var @event = new TaskStatusChanged(
+                Guid.NewGuid(),
+                "Title",
+                Guid.NewGuid(),
+                "Workspace",
+                "InProgress",
+                "InReview",
+                Guid.NewGuid(),
+                "changer",
+                requesterId,
+                "notfound@example.com",
                 "Requester",
                 null,
                 null,

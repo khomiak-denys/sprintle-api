@@ -44,12 +44,12 @@ namespace Notifications.Application.Tasks
         {
             ArgumentNullException.ThrowIfNull(@event);
 
-            var notification = await _notificationRepository.GetByUserIdAndTypeAsync(
+            var isEnabled = await _notificationRepository.IsEnabledAsync(
                 @event.AssigneeUserId,
                 NotificationType.Email,
                 cancellationToken);
 
-            if (notification is not null && !notification.Enabled)
+            if (!isEnabled)
             {
                 LogNotificationDisabled(@event.AssigneeUserId, @event.TaskId);
                 return;

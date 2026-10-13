@@ -183,5 +183,47 @@ namespace Notifications.Infrastructure.Tests.Repositories
             var deleted = await _context.Notifications.FindAsync(notification.Id);
             deleted.Should().BeNull();
         }
+
+        [Fact]
+        public async Task IsEnabledAsync_Should_ReturnTrue_When_NotificationExistsAndEnabled()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var notification = Notification.Create(userId, "enabled@example.com", "enableduser", NotificationType.Email, enabled: true);
+            await _context.Notifications.AddAsync(notification);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _repository.IsEnabledAsync(userId, NotificationType.Email);
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task IsEnabledAsync_Should_ReturnFalse_When_NotificationExistsAndDisabled()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var notification = Notification.Create(userId, "disabled@example.com", "disableduser", NotificationType.Email, enabled: false);
+            await _context.Notifications.AddAsync(notification);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _repository.IsEnabledAsync(userId, NotificationType.Email);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task IsEnabledAsync_Should_ReturnFalse_When_NotificationDoesNotExist()
+        {
+            // Act
+            var result = await _repository.IsEnabledAsync(Guid.NewGuid(), NotificationType.Email);
+
+            // Assert
+            result.Should().BeFalse();
+        }
     }
 }
