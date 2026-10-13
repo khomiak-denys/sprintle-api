@@ -32,6 +32,7 @@ namespace Notifications.Application
             services.AddScoped<IEventHandler<UserEmailConfirmationRequested>, UserEmailConfirmationRequestedHandler>();
             services.AddScoped<IEventHandler<WorkspaceMemberAdded>, WorkspaceMemberAddedHandler>();
             services.AddScoped<IEventHandler<TaskAssigned>, TaskAssignedHandler>();
+            services.AddScoped<IEventHandler<TaskStatusChanged>, TaskStatusChangedHandler>();
 
             return services;
         }
