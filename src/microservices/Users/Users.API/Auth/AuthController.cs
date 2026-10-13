@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServiceDefaults.ErrorHandling;
+using Swashbuckle.AspNetCore.Annotations;
 using Users.API.Auth.Requests;
+using Users.Application.Auth.ConfirmEmail;
+using Users.Application.Auth.FinishEmailConfirmation;
 using Users.Application.Auth.Login;
 using Users.Application.Auth.RefreshToken;
 using Users.Application.Auth.Register;
@@ -110,6 +113,72 @@ namespace Users.API.Auth
             }
 
             return this.ToActionResult(result.Error);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("confirm-email")]
+        [SwaggerOperation(Summary = "Requests an email confirmation token and dispatches confirmation email event")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailRequest? request, CancellationToken ct)
+        {
+            var email = request?.Email;
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            }
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid argument",
+                    Detail = "Email is required.",
+                    Status = StatusCodes.Status400BadRequest
+                });
+            }
+
+            var command = new ConfirmEmailCommand(email);
+            var result = await _sender.Send(command, ct);
+
+            return result.Match(Ok(), error => this.ToActionResult(error));
+        }
+
+        /// <summary>
+        /// Finishes email confirmation by verifying the provided token against the specified user.
+        /// </summary>
+        /// <param name="request">The finish email confirmation request payload.</param>
+        /// <param name="ct">The cancellation token.</param>
+        /// <returns>An HTTP 200 OK response if successful, or a problem details error response.</returns>
+        [AllowAnonymous]
+        [HttpPost("confirm-email/finish")]
+        [SwaggerOperation(Summary = "Finishes email confirmation by verifying the token")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> FinishEmailConfirmation([FromBody] FinishEmailConfirmationRequest request, CancellationToken ct)
+        {
+            var userId = request.UserId;
+            var email = request.Email;
+
+            if (!userId.HasValue && string.IsNullOrWhiteSpace(email))
+            {
+                var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (Guid.TryParse(userIdString, out var parsedUserId))
+                {
+                    userId = parsedUserId;
+                }
+                else
+                {
+                    email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+                }
+            }
+
+            var command = request.ToCommand(userId, email);
+            var result = await _sender.Send(command, ct);
+
+            return result.Match(Ok(), error => this.ToActionResult(error));
         }
 
         private void AppendRefreshTokenCookie(string refreshToken)

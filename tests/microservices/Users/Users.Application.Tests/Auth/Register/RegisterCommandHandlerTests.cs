@@ -63,6 +63,12 @@ namespace Users.Application.Tests.Auth.Register
 
             public Task<Result> RevokeRefreshTokenAsync(Guid userId, CancellationToken ct)
                 => throw new NotImplementedException();
+
+            public Task<Result<EmailConfirmationTokenResult>> GenerateEmailConfirmationTokenAsync(string email, CancellationToken ct)
+                => throw new NotImplementedException();
+
+            public Task<Result<ConfirmedUserResult>> FinishEmailConfirmationAsync(string token, Guid? userId, string? email, CancellationToken ct)
+                => throw new NotImplementedException();
         }
 
         private sealed class FakeEventPublisher : IEventPublisher

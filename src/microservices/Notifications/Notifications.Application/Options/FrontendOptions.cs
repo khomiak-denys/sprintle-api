@@ -1,4 +1,4 @@
-namespace Notifications.Infrastructure.Emails
+namespace Notifications.Application.Options
 {
     /// <summary>
     /// Configuration options for frontend application addresses and page URLs.

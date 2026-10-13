@@ -133,6 +133,64 @@ namespace Users.Infrastructure.Services
             return Result.Success();
         }
 
+        public async Task<Result<EmailConfirmationTokenResult>> GenerateEmailConfirmationTokenAsync(string email, CancellationToken ct)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                LogConfirmEmailUserNotFound(email);
+                return Result<EmailConfirmationTokenResult>.Failure(new NotFoundError($"User with email '{email}' not found"));
+            }
+
+            if (user.EmailConfirmed)
+            {
+                LogConfirmEmailAlreadyConfirmed(email);
+                return Result<EmailConfirmationTokenResult>.Failure(new InvalidArgumentError("Email is already confirmed"));
+            }
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            return Result<EmailConfirmationTokenResult>.Success(new EmailConfirmationTokenResult(user.Id, user.Email!, token));
+        }
+
+        public async Task<Result<ConfirmedUserResult>> FinishEmailConfirmationAsync(string token, Guid? userId, string? email, CancellationToken ct)
+        {
+            ApplicationUser? user = null;
+
+            if (userId.HasValue && userId.Value != Guid.Empty)
+            {
+                user = await _userManager.FindByIdAsync(userId.Value.ToString());
+            }
+            else if (!string.IsNullOrWhiteSpace(email))
+            {
+                user = await _userManager.FindByEmailAsync(email);
+            }
+
+            if (user == null)
+            {
+                var identifier = userId?.ToString() ?? email ?? "unknown";
+                LogFinishEmailConfirmationUserNotFound(identifier);
+                return Result<ConfirmedUserResult>.Failure(new NotFoundError($"User '{identifier}' not found"));
+            }
+
+            if (user.EmailConfirmed)
+            {
+                LogFinishEmailConfirmationAlreadyConfirmed(user.Id);
+                return Result<ConfirmedUserResult>.Failure(new InvalidArgumentError("Email is already confirmed"));
+            }
+
+            var identityResult = await _userManager.ConfirmEmailAsync(user, token);
+            if (!identityResult.Succeeded)
+            {
+                var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
+                LogFinishEmailConfirmationFailed(user.Id, errors);
+                return Result<ConfirmedUserResult>.Failure(new InvalidArgumentError($"Email confirmation failed: {errors}"));
+            }
+
+            LogFinishEmailConfirmationSuccess(user.Id);
+            return Result<ConfirmedUserResult>.Success(new ConfirmedUserResult(user.Id, user.Email!));
+        }
+
         private async Task<Result<AuthTokensResult>> GenerateTokensAndUpdateUserAsync(ApplicationUser user, CancellationToken ct)
         {
             var roles = await _userManager.GetRolesAsync(user);
@@ -178,5 +236,23 @@ namespace Users.Infrastructure.Services
 
         [LoggerMessage(Level = LogLevel.Warning, Message = "Revoke refresh token failed: User {UserId} not found")]
         private partial void LogRevokeRefreshTokenUserNotFound(Guid userId);
+
+        [LoggerMessage(Level = LogLevel.Warning, Message = "Email confirmation requested for non-existent user with email {Email}")]
+        private partial void LogConfirmEmailUserNotFound(string email);
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Email confirmation requested for already confirmed user with email {Email}")]
+        private partial void LogConfirmEmailAlreadyConfirmed(string email);
+
+        [LoggerMessage(Level = LogLevel.Warning, Message = "Finish email confirmation failed: User '{UserIdentifier}' not found")]
+        private partial void LogFinishEmailConfirmationUserNotFound(string userIdentifier);
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Finish email confirmation skipped: Email for user '{UserId}' is already confirmed")]
+        private partial void LogFinishEmailConfirmationAlreadyConfirmed(Guid userId);
+
+        [LoggerMessage(Level = LogLevel.Warning, Message = "Finish email confirmation failed for user '{UserId}': {Errors}")]
+        private partial void LogFinishEmailConfirmationFailed(Guid userId, string errors);
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Email confirmed successfully for user '{UserId}'")]
+        private partial void LogFinishEmailConfirmationSuccess(Guid userId);
     }
 }

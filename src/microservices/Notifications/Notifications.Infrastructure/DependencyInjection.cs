@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Notifications.Application.Abstractions;
+using Notifications.Application.Options;
 using Notifications.Domain.Notifications;
 using Notifications.Infrastructure.Consumers;
 using Notifications.Infrastructure.Emails;
