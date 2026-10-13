@@ -6,9 +6,12 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="*" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="*" />
     <PackageReference Include="MediatR" Version="*" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Notifications.Domain\Notifications.Domain.csproj" />
+    <ProjectReference Include="..\..\..\shared-libs\Messaging\Messaging.csproj" />
+    <ProjectReference Include="..\..\..\shared-libs\Messaging.Contracts\Messaging.Contracts.csproj" />
   </ItemGroup>
 </Project>
