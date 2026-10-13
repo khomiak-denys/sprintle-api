@@ -1,8 +1,11 @@
 using DomainFramework;
 using DomainFramework.Errors;
 using FluentAssertions;
+using Messaging.Abstractions;
+using Messaging.Contracts;
 using Workspaces.Application.Abstractions;
 using Workspaces.Application.Tasks.Create;
+using Workspaces.Application.Tasks.DTOs;
 using Workspaces.Domain.Tags;
 using Workspaces.Domain.Tasks;
 using Workspaces.Domain.Workspaces;
@@ -17,11 +20,19 @@ namespace Workspaces.Application.Tests.Tasks.Create
         private readonly FakeTaskRepository _taskRepository = new();
         private readonly FakeWorkspaceRepository _workspaceRepository = new();
         private readonly FakeTagRepository _tagRepository = new();
+        private readonly FakeUsersApiClient _usersApiClient = new();
+        private readonly FakeEventPublisher _eventPublisher = new();
         private readonly CreateTaskCommandHandler _handler;
 
         public CreateTaskCommandHandlerTests()
         {
-            _handler = new CreateTaskCommandHandler(_uow, _taskRepository, _workspaceRepository, _tagRepository);
+            _handler = new CreateTaskCommandHandler(
+                _uow,
+                _taskRepository,
+                _workspaceRepository,
+                _tagRepository,
+                _usersApiClient,
+                _eventPublisher);
         }
 
         [Fact]
@@ -93,8 +104,13 @@ namespace Workspaces.Application.Tests.Tasks.Create
             var creatorId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
 
+            var workspace = Workspace.Create("Main Team", creatorId, null);
+            _workspaceRepository.Workspaces[workspaceId] = workspace;
             _workspaceRepository.Members.Add((workspaceId, creatorId));
             _workspaceRepository.Members.Add((workspaceId, assigneeId));
+
+            _usersApiClient.Users[assigneeId] = new UserResult(assigneeId, "assignee@example.com", "assignee", "Assignee Full");
+            _usersApiClient.Users[creatorId] = new UserResult(creatorId, "creator@example.com", "creator", "Creator Full");
 
             var command = new CreateTaskCommand(
                 workspaceId,
@@ -117,6 +133,17 @@ namespace Workspaces.Application.Tests.Tasks.Create
             createdTask.Status.Should().Be(TaskStatus.InProgress);
             createdTask.AssigneeId.Should().Be(assigneeId);
             _uow.SaveCount.Should().Be(1);
+
+            _eventPublisher.PublishedEvents.Should().ContainSingle(e => e is TaskAssigned);
+            var publishedEvent = _eventPublisher.PublishedEvents.OfType<TaskAssigned>().Single();
+            publishedEvent.TaskId.Should().Be(result.Value);
+            publishedEvent.TaskTitle.Should().Be("Valid Task");
+            publishedEvent.AssigneeUserId.Should().Be(assigneeId);
+            publishedEvent.AssigneeEmail.Should().Be("assignee@example.com");
+            publishedEvent.AssigneeName.Should().Be("Assignee Full");
+            publishedEvent.AssignedByUserId.Should().Be(creatorId);
+            publishedEvent.AssignedByName.Should().Be("Creator Full");
+            publishedEvent.WorkspaceName.Should().Be("Main Team");
         }
 
         [Fact]
@@ -147,6 +174,7 @@ namespace Workspaces.Application.Tests.Tasks.Create
             createdTask.Status.Should().Be(TaskStatus.Todo);
             createdTask.AssigneeId.Should().BeNull();
             _uow.SaveCount.Should().Be(1);
+            _eventPublisher.PublishedEvents.Should().BeEmpty();
         }
 
         private sealed class FakeUnitOfWork : IUnitOfWork
@@ -163,9 +191,10 @@ namespace Workspaces.Application.Tests.Tasks.Create
         private sealed class FakeWorkspaceRepository : IWorkspaceRepository
         {
             public HashSet<(Guid WorkspaceId, Guid UserId)> Members { get; } = new();
+            public Dictionary<Guid, Workspace> Workspaces { get; } = new();
 
             public Task<Workspace?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
-                Task.FromResult<Workspace?>(null);
+                Task.FromResult(Workspaces.TryGetValue(id, out var ws) ? ws : null);
 
             public Task<PaginationResult<Workspace>> GetByMemberAsync(Guid userId, string? name, int page, int pageSize, CancellationToken cancellationToken) =>
                 Task.FromResult(PaginationResult<Workspace>.Create(Array.Empty<Workspace>(), page, pageSize, 0));
@@ -217,6 +246,43 @@ namespace Workspaces.Application.Tests.Tasks.Create
             public Task AddAsync(Tag tag, CancellationToken cancellationToken)
             {
                 Tags.Add(tag);
+                return Task.CompletedTask;
+            }
+        }
+
+        private sealed class FakeUsersApiClient : IUsersApiClient
+        {
+            public Dictionary<Guid, UserResult> Users { get; } = new();
+
+            public Task<UserResult?> GetByIdAsync(Guid userId, CancellationToken cancellationToken)
+            {
+                Users.TryGetValue(userId, out var user);
+                return Task.FromResult(user);
+            }
+
+            public Task<IReadOnlyDictionary<Guid, UserResult>> GetBatchAsync(
+                IReadOnlyCollection<Guid> userIds,
+                int page = 1,
+                int pageSize = 100,
+                string? search = null,
+                bool? isWorkspaceMember = null,
+                CancellationToken cancellationToken = default)
+            {
+                IReadOnlyDictionary<Guid, UserResult> result = Users
+                    .Where(kvp => userIds.Contains(kvp.Key))
+                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                return Task.FromResult(result);
+            }
+        }
+
+        private sealed class FakeEventPublisher : IEventPublisher
+        {
+            public List<object> PublishedEvents { get; } = new();
+
+            public Task PublishAsync<T>(T @event, CancellationToken cancellationToken = default) where T : class
+            {
+                PublishedEvents.Add(@event);
                 return Task.CompletedTask;
             }
         }

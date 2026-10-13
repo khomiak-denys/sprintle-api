@@ -2,6 +2,7 @@ using FluentValidation;
 using Messaging.Abstractions;
 using Messaging.Contracts;
 using Microsoft.Extensions.DependencyInjection;
+using Notifications.Application.Tasks;
 using Notifications.Application.Users;
 using Notifications.Application.Workspaces;
 
@@ -30,6 +31,7 @@ namespace Notifications.Application
             services.AddScoped<IEventHandler<UserEmailConfirmed>, UserEmailConfirmedHandler>();
             services.AddScoped<IEventHandler<UserEmailConfirmationRequested>, UserEmailConfirmationRequestedHandler>();
             services.AddScoped<IEventHandler<WorkspaceMemberAdded>, WorkspaceMemberAddedHandler>();
+            services.AddScoped<IEventHandler<TaskAssigned>, TaskAssignedHandler>();
 
             return services;
         }

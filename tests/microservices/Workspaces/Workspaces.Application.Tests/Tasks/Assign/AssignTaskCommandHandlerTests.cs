@@ -1,6 +1,8 @@
 using DomainFramework;
 using DomainFramework.Errors;
 using FluentAssertions;
+using Messaging.Abstractions;
+using Messaging.Contracts;
 using Workspaces.Application.Abstractions;
 using Workspaces.Application.Tasks.Assign;
 using Workspaces.Application.Tasks.DTOs;
@@ -17,11 +19,12 @@ namespace Workspaces.Application.Tests.Tasks.Assign
         private readonly FakeTaskRepository _taskRepository = new();
         private readonly FakeWorkspaceRepository _workspaceRepository = new();
         private readonly FakeUsersApiClient _usersApiClient = new();
+        private readonly FakeEventPublisher _eventPublisher = new();
         private readonly AssignTaskCommandHandler _handler;
 
         public AssignTaskCommandHandlerTests()
         {
-            _handler = new AssignTaskCommandHandler(_uow, _taskRepository, _workspaceRepository, _usersApiClient);
+            _handler = new AssignTaskCommandHandler(_uow, _taskRepository, _workspaceRepository, _usersApiClient, _eventPublisher);
         }
 
         [Fact]
@@ -88,11 +91,14 @@ namespace Workspaces.Application.Tests.Tasks.Assign
             // Arrange
             var creatorId = Guid.NewGuid();
             var memberId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, creatorId);
+            var workspace = Workspace.Create("Backend Workspace", creatorId, null);
+            var task = TaskItem.Create(workspace.Id, "Task", "Task Desc", Priority.High, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
 
-            _workspaceRepository.Members.Add((task.WorkspaceId, memberId));
+            _workspaceRepository.Workspaces[workspace.Id] = workspace;
+            _workspaceRepository.Members.Add((workspace.Id, memberId));
             _usersApiClient.Users[memberId] = new UserResult(memberId, "member@example.com", "member", "Member Name");
+            _usersApiClient.Users[creatorId] = new UserResult(creatorId, "creator@example.com", "creator", "Creator Name");
 
             var command = new AssignTaskCommand(task.Id, memberId, creatorId);
 
@@ -104,6 +110,47 @@ namespace Workspaces.Application.Tests.Tasks.Assign
             task.AssigneeId.Should().Be(memberId);
             task.Status.Should().Be(TaskStatus.InProgress);
             _uow.SaveCount.Should().Be(1);
+
+            _eventPublisher.PublishedEvents.Should().ContainSingle(e => e is TaskAssigned);
+            var publishedEvent = _eventPublisher.PublishedEvents.OfType<TaskAssigned>().Single();
+            publishedEvent.TaskId.Should().Be(task.Id);
+            publishedEvent.TaskTitle.Should().Be("Task");
+            publishedEvent.TaskDescription.Should().Be("Task Desc");
+            publishedEvent.WorkspaceId.Should().Be(workspace.Id);
+            publishedEvent.WorkspaceName.Should().Be("Backend Workspace");
+            publishedEvent.AssigneeUserId.Should().Be(memberId);
+            publishedEvent.AssigneeEmail.Should().Be("member@example.com");
+            publishedEvent.AssigneeName.Should().Be("Member Name");
+            publishedEvent.AssignedByUserId.Should().Be(creatorId);
+            publishedEvent.AssignedByName.Should().Be("Creator Name");
+            publishedEvent.Priority.Should().Be("High");
+        }
+
+        [Fact]
+        public async Task Handle_Should_PublishTaskAssignedWithFallbackNames_When_UsersHaveNoFullName()
+        {
+            // Arrange
+            var creatorId = Guid.NewGuid();
+            var memberId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            var task = TaskItem.Create(workspaceId, "Simple Task", null, Priority.Low, null, null, creatorId);
+            _taskRepository.TaskToReturn = task;
+
+            _workspaceRepository.Members.Add((workspaceId, memberId));
+            _usersApiClient.Users[memberId] = new UserResult(memberId, "member@example.com", "memberusername", null);
+            _usersApiClient.Users[creatorId] = new UserResult(creatorId, "creator@example.com", "creatorusername", null);
+
+            var command = new AssignTaskCommand(task.Id, memberId, creatorId);
+
+            // Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            var publishedEvent = _eventPublisher.PublishedEvents.OfType<TaskAssigned>().Single();
+            publishedEvent.AssigneeName.Should().Be("memberusername");
+            publishedEvent.AssignedByName.Should().Be("creatorusername");
+            publishedEvent.WorkspaceName.Should().Be("Workspace");
         }
 
         private sealed class FakeUnitOfWork : IUnitOfWork
@@ -120,9 +167,10 @@ namespace Workspaces.Application.Tests.Tasks.Assign
         private sealed class FakeWorkspaceRepository : IWorkspaceRepository
         {
             public HashSet<(Guid WorkspaceId, Guid UserId)> Members { get; } = new();
+            public Dictionary<Guid, Workspace> Workspaces { get; } = new();
 
             public Task<Workspace?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
-                Task.FromResult<Workspace?>(null);
+                Task.FromResult(Workspaces.TryGetValue(id, out var ws) ? ws : null);
 
             public Task<PaginationResult<Workspace>> GetByMemberAsync(Guid userId, string? name, int page, int pageSize, CancellationToken cancellationToken) =>
                 Task.FromResult(PaginationResult<Workspace>.Create(Array.Empty<Workspace>(), page, pageSize, 0));
@@ -182,6 +230,17 @@ namespace Workspaces.Application.Tests.Tasks.Assign
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
                 return Task.FromResult(result);
+            }
+        }
+
+        private sealed class FakeEventPublisher : IEventPublisher
+        {
+            public List<object> PublishedEvents { get; } = new();
+
+            public Task PublishAsync<T>(T @event, CancellationToken cancellationToken = default) where T : class
+            {
+                PublishedEvents.Add(@event);
+                return Task.CompletedTask;
             }
         }
     }
