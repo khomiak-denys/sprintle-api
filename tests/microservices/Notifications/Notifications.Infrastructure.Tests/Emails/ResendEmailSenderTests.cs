@@ -2,6 +2,7 @@ using System.Net;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Notifications.Application.Options;
 using Notifications.Infrastructure.Emails;
 using NSubstitute;
 using Resend;
