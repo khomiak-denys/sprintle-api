@@ -14,5 +14,10 @@ namespace Notifications.Application.Options
         /// Gets or sets the email confirmation page address of the frontend application.
         /// </summary>
         public string EmailConfirmationPageAddress { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the dashboard or workspaces landing page address of the frontend application.
+        /// </summary>
+        public string DashboardPageAddress { get; set; } = string.Empty;
     }
 }
