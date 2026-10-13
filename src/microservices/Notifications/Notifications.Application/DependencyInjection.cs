@@ -27,6 +27,7 @@ namespace Notifications.Application
 
             services.AddScoped<IEventHandler<UserRegistered>, UserRegisteredHandler>();
             services.AddScoped<IEventHandler<UserEmailConfirmed>, UserEmailConfirmedHandler>();
+            services.AddScoped<IEventHandler<UserEmailConfirmationRequested>, UserEmailConfirmationRequestedHandler>();
 
             return services;
         }

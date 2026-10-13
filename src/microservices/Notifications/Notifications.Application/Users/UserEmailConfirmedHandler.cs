@@ -48,6 +48,7 @@ namespace Notifications.Application.Users
             }
 
             notification.UpdateEmail(@event.Email);
+            notification.Enable();
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

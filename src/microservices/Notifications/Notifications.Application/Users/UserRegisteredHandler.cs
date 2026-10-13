@@ -52,7 +52,7 @@ namespace Notifications.Application.Users
                 @event.Email,
                 @event.UserName,
                 NotificationType.Email,
-                enabled: true);
+                enabled: false);
 
             await _notificationRepository.AddAsync(notification, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -63,7 +63,7 @@ namespace Notifications.Application.Users
         [LoggerMessage(Level = LogLevel.Information, Message = "Notification setting for user '{UserId}' already exists.")]
         private partial void LogNotificationAlreadyExists(Guid userId);
 
-        [LoggerMessage(Level = LogLevel.Information, Message = "Created default email notification setting for user '{UserId}'.")]
+        [LoggerMessage(Level = LogLevel.Information, Message = "Created initial disabled email notification setting for user '{UserId}'.")]
         private partial void LogNotificationCreated(Guid userId);
     }
 }
