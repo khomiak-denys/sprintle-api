@@ -29,23 +29,19 @@ namespace EmailTemplates
         /// </summary>
         /// <param name="workspaceName">The name of the workspace.</param>
         /// <param name="managerName">The name of the manager or owner who added the user.</param>
-        /// <param name="workspaceUrl">The destination URL to open the workspace in the frontend application.</param>
         /// <param name="recipientName">The optional display name or email of the recipient for the greeting.</param>
         /// <returns>A fully-styled HTML email document matching frontend design tokens.</returns>
         public static string Render(
             string workspaceName,
             string managerName,
-            string workspaceUrl,
             string? recipientName = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(workspaceName);
-            ArgumentException.ThrowIfNullOrWhiteSpace(workspaceUrl);
 
             var encodedWorkspaceName = WebUtility.HtmlEncode(workspaceName);
             var encodedManagerName = string.IsNullOrWhiteSpace(managerName)
                 ? "A workspace manager"
                 : WebUtility.HtmlEncode(managerName);
-            var encodedUrl = WebUtility.HtmlEncode(workspaceUrl);
             var greetingText = string.IsNullOrWhiteSpace(recipientName)
                 ? "Hello,"
                 : $"Hello <strong style=\"color: #323130;\">{WebUtility.HtmlEncode(recipientName)}</strong>,";
@@ -119,33 +115,9 @@ namespace EmailTemplates
                                         </td>
                                     </tr>
 
-                                    <!-- Primary CTA Button -->
-                                    <tr>
-                                        <td align="center" style="padding: 4px 0 32px 0;">
-                                            <table role="presentation" border="0" cellpadding="0" cellspacing="0">
-                                                <tr>
-                                                    <td align="center" style="border-radius: 4px; background-color: #0078d4;">
-                                                        <a href="{{encodedUrl}}" target="_blank" style="display: inline-block; padding: 12px 32px; font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 4px; border: 1px solid #0078d4; letter-spacing: 0.2px; text-align: center;">Go to Workspace</a>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </td>
-                                    </tr>
-
-                                    <!-- Secondary Direct Link Fallback -->
-                                    <tr>
-                                        <td align="left" style="padding-bottom: 28px; border-top: 1px solid #edebe9; padding-top: 24px; font-size: 13px; line-height: 1.5; color: #605e5c;">
-                                            <p style="margin: 0 0 8px 0; font-weight: 500; color: #323130;">Having trouble with the button?</p>
-                                            <p style="margin: 0 0 8px 0;">Copy and paste the following URL into your browser:</p>
-                                            <p style="margin: 0; word-break: break-all;">
-                                                <a href="{{encodedUrl}}" target="_blank" style="color: #0078d4; text-decoration: none;">{{encodedUrl}}</a>
-                                            </p>
-                                        </td>
-                                    </tr>
-
                                     <!-- Security Notice & Footer -->
                                     <tr>
-                                        <td align="left" style="font-size: 12px; line-height: 1.5; color: #a19f9d;">
+                                        <td align="left" style="font-size: 12px; line-height: 1.5; color: #a19f9d; border-top: 1px solid #edebe9; padding-top: 24px;">
                                             <p style="margin: 0 0 8px 0;">You received this email because you are a registered user of TaskTracker and were assigned to a team workspace.</p>
                                             <p style="margin: 0;">&copy; 2026 TaskTracker. All rights reserved.</p>
                                         </td>

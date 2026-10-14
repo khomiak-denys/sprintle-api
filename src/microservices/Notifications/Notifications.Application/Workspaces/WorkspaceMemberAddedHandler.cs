@@ -2,9 +2,7 @@ using EmailTemplates;
 using Messaging.Abstractions;
 using Messaging.Contracts;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Notifications.Application.Abstractions;
-using Notifications.Application.Options;
 using Notifications.Domain.Notifications;
 
 namespace Notifications.Application.Workspaces
@@ -16,7 +14,6 @@ namespace Notifications.Application.Workspaces
     {
         private readonly IEmailSender _emailSender;
         private readonly INotificationRepository _notificationRepository;
-        private readonly IOptions<FrontendOptions> _frontendOptions;
         private readonly ILogger<WorkspaceMemberAddedHandler> _logger;
 
         /// <summary>
@@ -24,17 +21,14 @@ namespace Notifications.Application.Workspaces
         /// </summary>
         /// <param name="emailSender">The email sender service.</param>
         /// <param name="notificationRepository">The notification repository for inspecting user preferences.</param>
-        /// <param name="frontendOptions">The frontend options containing application addresses.</param>
         /// <param name="logger">The logger instance.</param>
         public WorkspaceMemberAddedHandler(
             IEmailSender emailSender,
             INotificationRepository notificationRepository,
-            IOptions<FrontendOptions> frontendOptions,
             ILogger<WorkspaceMemberAddedHandler> logger)
         {
             _emailSender = emailSender;
             _notificationRepository = notificationRepository;
-            _frontendOptions = frontendOptions;
             _logger = logger;
         }
 
@@ -54,19 +48,9 @@ namespace Notifications.Application.Workspaces
                 return;
             }
 
-            var baseUrl = _frontendOptions.Value.DashboardPageAddress;
-            if (string.IsNullOrWhiteSpace(baseUrl))
-            {
-                baseUrl = "http://localhost:4200/dashboard";
-            }
-
-            var separator = baseUrl.Contains('?', StringComparison.Ordinal) ? "&" : "?";
-            var workspaceUrl = $"{baseUrl}{separator}workspaceId={@event.WorkspaceId}";
-
             var htmlBody = WorkspaceMemberAddedTemplate.Render(
                 @event.WorkspaceName,
                 @event.AddedByName,
-                workspaceUrl,
                 @event.MemberName);
 
             var subject = WorkspaceMemberAddedTemplate.GetSubject(@event.WorkspaceName);

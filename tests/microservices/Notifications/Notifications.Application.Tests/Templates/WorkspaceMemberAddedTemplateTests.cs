@@ -7,26 +7,23 @@ namespace Notifications.Application.Tests.Templates
     public class WorkspaceMemberAddedTemplateTests
     {
         [Fact]
-        public void Render_Should_GenerateHtmlWithWorkspaceAndManagerAndButton_When_ValidInputsProvided()
+        public void Render_Should_GenerateHtmlWithWorkspaceAndManager_When_ValidInputsProvided()
         {
             // Arrange
             var workspaceName = "Mobile Platform";
             var managerName = "Alice Manager";
-            var workspaceUrl = "http://localhost:4200/dashboard?workspaceId=ws-123";
             var recipientName = "Bob Developer";
 
             // Act
-            var html = WorkspaceMemberAddedTemplate.Render(workspaceName, managerName, workspaceUrl, recipientName);
+            var html = WorkspaceMemberAddedTemplate.Render(workspaceName, managerName, recipientName);
 
             // Assert
             html.Should().NotBeNullOrWhiteSpace();
             html.Should().Contain("<!DOCTYPE html>");
             html.Should().Contain("You've been added to a workspace");
-            html.Should().Contain("Go to Workspace");
             html.Should().Contain("Mobile Platform");
             html.Should().Contain("Alice Manager");
             html.Should().Contain("Bob Developer");
-            html.Should().Contain("http://localhost:4200/dashboard?workspaceId=ws-123");
             html.Should().Contain("TaskTracker");
             html.Should().Contain("background-color: #0078d4");
         }
@@ -36,10 +33,9 @@ namespace Notifications.Application.Tests.Templates
         {
             // Arrange
             var workspaceName = "Mobile Platform";
-            var workspaceUrl = "http://localhost:4200/dashboard";
 
             // Act
-            var html = WorkspaceMemberAddedTemplate.Render(workspaceName, "", workspaceUrl, null);
+            var html = WorkspaceMemberAddedTemplate.Render(workspaceName, "", null);
 
             // Assert
             html.Should().Contain("Hello,");
@@ -52,11 +48,10 @@ namespace Notifications.Application.Tests.Templates
             // Arrange
             var workspaceName = "<script>alert('xss')</script>";
             var managerName = "<b>Manager</b>";
-            var workspaceUrl = "http://localhost:4200/dashboard?a=1&b=2";
             var recipientName = "<i>User</i>";
 
             // Act
-            var html = WorkspaceMemberAddedTemplate.Render(workspaceName, managerName, workspaceUrl, recipientName);
+            var html = WorkspaceMemberAddedTemplate.Render(workspaceName, managerName, recipientName);
 
             // Assert
             html.Should().NotContain("<script>");
@@ -72,20 +67,7 @@ namespace Notifications.Application.Tests.Templates
         public void Render_Should_ThrowArgumentException_When_WorkspaceNameIsNullOrWhiteSpace(string? invalidName)
         {
             // Act
-            var act = () => WorkspaceMemberAddedTemplate.Render(invalidName!, "Manager", "http://localhost:4200/dashboard");
-
-            // Assert
-            act.Should().Throw<ArgumentException>();
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("   ")]
-        public void Render_Should_ThrowArgumentException_When_WorkspaceUrlIsNullOrWhiteSpace(string? invalidUrl)
-        {
-            // Act
-            var act = () => WorkspaceMemberAddedTemplate.Render("Workspace", "Manager", invalidUrl!);
+            var act = () => WorkspaceMemberAddedTemplate.Render(invalidName!, "Manager");
 
             // Assert
             act.Should().Throw<ArgumentException>();
