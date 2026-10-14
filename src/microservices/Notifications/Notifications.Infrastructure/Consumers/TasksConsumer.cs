@@ -37,7 +37,8 @@ namespace Notifications.Infrastructure.Consumers
             : base(connectionManager, scopeFactory, logger)
         {
             Dispatcher = new EventDispatcher(routingConvention)
-                .Map<TaskAssigned>();
+                .Map<TaskAssigned>()
+                .Map<TaskStatusChanged>();
         }
     }
 }
