@@ -146,6 +146,34 @@ namespace Notifications.Application.Tests.Templates
             subject.Should().Be("Task 'Setup DB' status changed to InProgress in 'Core' - TaskTracker");
         }
 
+        [Fact]
+        public void GetSubject_Should_ReturnCancelledSubject_When_NewStatusIsCancelled()
+        {
+            // Act
+            var subjectWithWorkspace = TaskStatusChangedTemplate.GetSubject("Setup DB", "Cancelled", "Core");
+            var subjectWithoutWorkspace = TaskStatusChangedTemplate.GetSubject("Setup DB", "Cancelled", null);
+
+            // Assert
+            subjectWithWorkspace.Should().Be("Task 'Setup DB' in 'Core' has been cancelled - TaskTracker");
+            subjectWithoutWorkspace.Should().Be("Task 'Setup DB' has been cancelled - TaskTracker");
+        }
+
+        [Fact]
+        public void Render_Should_ContainTaskCancelledHeadline_When_NewStatusIsCancelled()
+        {
+            // Act
+            var html = TaskStatusChangedTemplate.Render(
+                "Setup DB",
+                "Core",
+                "InProgress",
+                "Cancelled",
+                "admin",
+                "assignee");
+
+            // Assert
+            html.Should().Contain("Task Cancelled");
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("")]

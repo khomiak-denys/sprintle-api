@@ -12,7 +12,7 @@ namespace Notifications.Application.Tasks
     /// <summary>
     /// Handles <see cref="TaskStatusChanged"/> events to send email notifications.
     /// Specifically notifies the requester when a task is completed/submitted for review,
-    /// and notifies the assignee when a task is approved.
+    /// notifies the assignee when a task is approved, and notifies the assignee when a task is cancelled.
     /// </summary>
     public sealed partial class TaskStatusChangedHandler : IEventHandler<TaskStatusChanged>
     {
@@ -100,9 +100,17 @@ namespace Notifications.Application.Tasks
                     recipients.Add((@event.AssigneeUserId.Value, @event.AssigneeEmail, @event.AssigneeName ?? "Assignee"));
                 }
             }
+            else if (string.Equals(@event.NewStatus, "Cancelled", StringComparison.OrdinalIgnoreCase))
+            {
+                // Cancelled -> only notify assignee, if task unassigned don't send email
+                if (@event.AssigneeUserId.HasValue && !string.IsNullOrWhiteSpace(@event.AssigneeEmail) && @event.AssigneeUserId.Value != @event.ChangedByUserId)
+                {
+                    recipients.Add((@event.AssigneeUserId.Value, @event.AssigneeEmail, @event.AssigneeName ?? "Assignee"));
+                }
+            }
             else
             {
-                // Other transitions (Closed, Cancelled)
+                // Other transitions (Closed)
                 if (@event.ChangedByUserId == @event.CreatedByUserId && @event.AssigneeUserId.HasValue && !string.IsNullOrWhiteSpace(@event.AssigneeEmail))
                 {
                     recipients.Add((@event.AssigneeUserId.Value, @event.AssigneeEmail, @event.AssigneeName ?? "Assignee"));
