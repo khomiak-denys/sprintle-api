@@ -1,0 +1,248 @@
+services:
+  Message-bus:
+    container_name: "Message-bus"
+    image: "docker.io/library/rabbitmq:4.3-management"
+    environment:
+      RABBITMQ_DEFAULT_USER: "${RABBITMQ_DEFAULT_USER:-guest}"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_DEFAULT_PASS:-guest}"
+    volumes:
+    - "message-bus-data:/var/lib/rabbitmq"
+    ports:
+    - target: 5672
+      published: "${RABBITMQ_PORT:-5672}"
+    - target: 15672
+      published: "${RABBITMQ_MANAGEMENT_PORT:-15672}"
+    restart: unless-stopped
+
+  Users-database:
+    container_name: "Users-database"
+    image: "docker.io/library/postgres:18.3"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      POSTGRES_USER: "${USERS_DB_USER:-postgres}"
+      POSTGRES_PASSWORD: "${USERS_DB_PASSWORD:-postgres}"
+      POSTGRES_DB: "${USERS_DB_NAME:-UsersDb}"
+    volumes:
+    - "users-database-data:/var/lib/postgresql"
+    ports:
+    - target: 5432
+      published: "${USERS_DB_PORT:-5432}"
+    restart: unless-stopped
+
+  Notifications-database:
+    container_name: "Notifications-database"
+    image: "docker.io/library/postgres:18.3"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      POSTGRES_USER: "${NOTIFICATIONS_DB_USER:-postgres}"
+      POSTGRES_PASSWORD: "${NOTIFICATIONS_DB_PASSWORD:-postgres}"
+      POSTGRES_DB: "${NOTIFICATIONS_DB_NAME:-NotificationsDb}"
+    volumes:
+    - "notifications-database-data:/var/lib/postgresql"
+    ports:
+    - target: 5432
+      published: "${NOTIFICATIONS_DB_PORT:-5433}"
+    restart: unless-stopped
+
+  Workspaces-database:
+    container_name: "Workspaces-database"
+    image: "docker.io/library/postgres:18.3"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      POSTGRES_USER: "${WORKSPACES_DB_USER:-postgres}"
+      POSTGRES_PASSWORD: "${WORKSPACES_DB_PASSWORD:-postgres}"
+      POSTGRES_DB: "${WORKSPACES_DB_NAME:-WorkspacesDb}"
+    volumes:
+    - "workspaces-database-data:/var/lib/postgresql"
+    ports:
+    - target: 5432
+      published: "${WORKSPACES_DB_PORT:-5434}"
+    restart: unless-stopped
+
+  Users-Service:
+    container_name: "Users-Service"
+    image: "users-service:latest"
+    build:
+      context: .
+      dockerfile: src/microservices/Users/Users.API/Dockerfile
+    depends_on:
+      Users-database:
+        condition: service_started
+      Message-bus:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Development}"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      ConnectionStrings__UsersDb: "Host=Users-database;Port=5432;Username=${USERS_DB_USER:-postgres};Password=${USERS_DB_PASSWORD:-postgres};Database=${USERS_DB_NAME:-UsersDb}"
+      USERSDB_HOST: "Users-database"
+      USERSDB_PORT: "5432"
+      USERSDB_USERNAME: "${USERS_DB_USER:-postgres}"
+      USERSDB_PASSWORD: "${USERS_DB_PASSWORD:-postgres}"
+      USERSDB_URI: "postgresql://${USERS_DB_USER:-postgres}:${USERS_DB_PASSWORD:-postgres}@Users-database:5432/${USERS_DB_NAME:-UsersDb}"
+      USERSDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://Users-database:5432/${USERS_DB_NAME:-UsersDb}"
+      USERSDB_DATABASENAME: "${USERS_DB_NAME:-UsersDb}"
+      ConnectionStrings__Message-bus: "amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@Message-bus:5672"
+      MESSAGE_BUS_HOST: "Message-bus"
+      MESSAGE_BUS_PORT: "5672"
+      MESSAGE_BUS_USERNAME: "${RABBITMQ_DEFAULT_USER:-guest}"
+      MESSAGE_BUS_PASSWORD: "${RABBITMQ_DEFAULT_PASS:-guest}"
+      MESSAGE_BUS_URI: "amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@Message-bus:5672"
+      JwtOptions__Key: "${JWT_KEY:-super_secret_jwt_key_that_is_at_least_32_characters_long_12345!}"
+      JwtOptions__Issuer: "${JWT_ISSUER:-TaskTracker}"
+      JwtOptions__Audience: "${JWT_AUDIENCE:-TaskTrackerClient}"
+      JwtOptions__TokenValidityMins: "${JWT_TOKEN_VALIDITY_MINS:-60}"
+      IntegrationApiKeyOptions__ApiKey: "${INTEGRATION_API_KEY:-dev-integration-api-key-super-secret}"
+      CorsOptions__Name: "${CORS_POLICY_NAME:-AllowFrontend}"
+      CorsOptions__AllowedOrigins__0: "${CORS_ALLOWED_ORIGIN:-http://localhost:4200}"
+      CorsOptions__AllowedMethods__0: "*"
+      CorsOptions__AllowedHeaders__0: "*"
+    ports:
+    - target: 8080
+      published: "${USERS_SERVICE_PORT:-10000}"
+    - target: 8443
+      published: "${USERS_SERVICE_HTTPS_PORT:-10001}"
+    restart: unless-stopped
+
+  Notifications-Service:
+    container_name: "Notifications-Service"
+    image: "notifications-service:latest"
+    build:
+      context: .
+      dockerfile: src/microservices/Notifications/Notifications.API/Dockerfile
+    depends_on:
+      Notifications-database:
+        condition: service_started
+      Message-bus:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Development}"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      ConnectionStrings__NotificationsDb: "Host=Notifications-database;Port=5432;Username=${NOTIFICATIONS_DB_USER:-postgres};Password=${NOTIFICATIONS_DB_PASSWORD:-postgres};Database=${NOTIFICATIONS_DB_NAME:-NotificationsDb}"
+      NOTIFICATIONSDB_HOST: "Notifications-database"
+      NOTIFICATIONSDB_PORT: "5432"
+      NOTIFICATIONSDB_USERNAME: "${NOTIFICATIONS_DB_USER:-postgres}"
+      NOTIFICATIONSDB_PASSWORD: "${NOTIFICATIONS_DB_PASSWORD:-postgres}"
+      NOTIFICATIONSDB_URI: "postgresql://${NOTIFICATIONS_DB_USER:-postgres}:${NOTIFICATIONS_DB_PASSWORD:-postgres}@Notifications-database:5432/${NOTIFICATIONS_DB_NAME:-NotificationsDb}"
+      NOTIFICATIONSDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://Notifications-database:5432/${NOTIFICATIONS_DB_NAME:-NotificationsDb}"
+      NOTIFICATIONSDB_DATABASENAME: "${NOTIFICATIONS_DB_NAME:-NotificationsDb}"
+      ConnectionStrings__Message-bus: "amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@Message-bus:5672"
+      MESSAGE_BUS_HOST: "Message-bus"
+      MESSAGE_BUS_PORT: "5672"
+      MESSAGE_BUS_USERNAME: "${RABBITMQ_DEFAULT_USER:-guest}"
+      MESSAGE_BUS_PASSWORD: "${RABBITMQ_DEFAULT_PASS:-guest}"
+      MESSAGE_BUS_URI: "amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@Message-bus:5672"
+      Resend__ApiToken: "${RESEND_API_TOKEN:-re_your_resend_api_token_here}"
+      Resend__From: "${RESEND_FROM:-TaskTracker <onboarding@resend.dev>}"
+      Frontend__EmailConfirmationPageAddress: "${FRONTEND_CONFIRM_EMAIL_URL:-http://localhost:4200/confirm-email}"
+      Frontend__DashboardPageAddress: "${FRONTEND_DASHBOARD_URL:-http://localhost:4200/dashboard}"
+      CorsOptions__Name: "${CORS_POLICY_NAME:-AllowFrontend}"
+      CorsOptions__AllowedOrigins__0: "${CORS_ALLOWED_ORIGIN:-http://localhost:4200}"
+      CorsOptions__AllowedMethods__0: "*"
+      CorsOptions__AllowedHeaders__0: "*"
+    ports:
+    - target: 8080
+      published: "${NOTIFICATIONS_SERVICE_PORT:-10002}"
+    - target: 8443
+      published: "${NOTIFICATIONS_SERVICE_HTTPS_PORT:-10003}"
+    restart: unless-stopped
+
+  Workspaces-Service:
+    container_name: "Workspaces-Service"
+    image: "workspaces-service:latest"
+    build:
+      context: .
+      dockerfile: src/microservices/Workspaces/Workspaces.API/Dockerfile
+    depends_on:
+      Workspaces-database:
+        condition: service_started
+      Message-bus:
+        condition: service_started
+      Users-Service:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Development}"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      ConnectionStrings__WorkspacesDb: "Host=Workspaces-database;Port=5432;Username=${WORKSPACES_DB_USER:-postgres};Password=${WORKSPACES_DB_PASSWORD:-postgres};Database=${WORKSPACES_DB_NAME:-WorkspacesDb}"
+      WORKSPACESDB_HOST: "Workspaces-database"
+      WORKSPACESDB_PORT: "5432"
+      WORKSPACESDB_USERNAME: "${WORKSPACES_DB_USER:-postgres}"
+      WORKSPACESDB_PASSWORD: "${WORKSPACES_DB_PASSWORD:-postgres}"
+      WORKSPACESDB_URI: "postgresql://${WORKSPACES_DB_USER:-postgres}:${WORKSPACES_DB_PASSWORD:-postgres}@Workspaces-database:5432/${WORKSPACES_DB_NAME:-WorkspacesDb}"
+      WORKSPACESDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://Workspaces-database:5432/${WORKSPACES_DB_NAME:-WorkspacesDb}"
+      WORKSPACESDB_DATABASENAME: "${WORKSPACES_DB_NAME:-WorkspacesDb}"
+      UsersApi__BaseUrl: "${USERS_SERVICE_INTERNAL_URL:-http://Users-Service:8080}"
+      USERS_SERVICE_HTTP: "${USERS_SERVICE_INTERNAL_URL:-http://Users-Service:8080}"
+      services__Users-Service__http__0: "${USERS_SERVICE_INTERNAL_URL:-http://Users-Service:8080}"
+      ConnectionStrings__Message-bus: "amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@Message-bus:5672"
+      MESSAGE_BUS_HOST: "Message-bus"
+      MESSAGE_BUS_PORT: "5672"
+      MESSAGE_BUS_USERNAME: "${RABBITMQ_DEFAULT_USER:-guest}"
+      MESSAGE_BUS_PASSWORD: "${RABBITMQ_DEFAULT_PASS:-guest}"
+      MESSAGE_BUS_URI: "amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@Message-bus:5672"
+      JwtOptions__Key: "${JWT_KEY:-super_secret_jwt_key_that_is_at_least_32_characters_long_12345!}"
+      JwtOptions__Issuer: "${JWT_ISSUER:-TaskTracker}"
+      JwtOptions__Audience: "${JWT_AUDIENCE:-TaskTrackerClient}"
+      JwtOptions__TokenValidityMins: "${JWT_TOKEN_VALIDITY_MINS:-60}"
+      IntegrationApiKeyOptions__ApiKey: "${INTEGRATION_API_KEY:-dev-integration-api-key-super-secret}"
+      CorsOptions__Name: "${CORS_POLICY_NAME:-AllowFrontend}"
+      CorsOptions__AllowedOrigins__0: "${CORS_ALLOWED_ORIGIN:-http://localhost:4200}"
+      CorsOptions__AllowedMethods__0: "*"
+      CorsOptions__AllowedHeaders__0: "*"
+    ports:
+    - target: 8080
+      published: "${WORKSPACES_SERVICE_PORT:-10004}"
+    - target: 8443
+      published: "${WORKSPACES_SERVICE_HTTPS_PORT:-10005}"
+    restart: unless-stopped
+
+  API-Gateway:
+    container_name: "API-Gateway"
+    image: "api-gateway:latest"
+    build:
+      context: .
+      dockerfile: src/gateway/Dockerfile
+    depends_on:
+      Users-Service:
+        condition: service_started
+      Workspaces-Service:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Development}"
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "8080"
+      USERS_SERVICE_HTTP: "${USERS_SERVICE_INTERNAL_URL:-http://Users-Service:8080}"
+      services__Users-Service__http__0: "${USERS_SERVICE_INTERNAL_URL:-http://Users-Service:8080}"
+      WORKSPACES_SERVICE_HTTP: "${WORKSPACES_SERVICE_INTERNAL_URL:-http://Workspaces-Service:8080}"
+      services__Workspaces-Service__http__0: "${WORKSPACES_SERVICE_INTERNAL_URL:-http://Workspaces-Service:8080}"
+      ReverseProxy__Clusters__users-cluster__Destinations__destination1__Address: "${USERS_SERVICE_INTERNAL_URL:-http://Users-Service:8080}"
+      ReverseProxy__Clusters__workspaces-cluster__Destinations__destination1__Address: "${WORKSPACES_SERVICE_INTERNAL_URL:-http://Workspaces-Service:8080}"
+      JwtOptions__Key: "${JWT_KEY:-super_secret_jwt_key_that_is_at_least_32_characters_long_12345!}"
+      JwtOptions__Issuer: "${JWT_ISSUER:-TaskTracker}"
+      JwtOptions__Audience: "${JWT_AUDIENCE:-TaskTrackerClient}"
+      JwtOptions__TokenValidityMins: "${JWT_TOKEN_VALIDITY_MINS:-60}"
+      CorsOptions__Name: "${CORS_POLICY_NAME:-AllowFrontend}"
+      CorsOptions__AllowedOrigins__0: "${CORS_ALLOWED_ORIGIN:-http://localhost:4200}"
+      CorsOptions__AllowedMethods__0: "*"
+      CorsOptions__AllowedHeaders__0: "*"
+    ports:
+    - target: 8080
+      published: "${GATEWAY_PORT:-10006}"
+    - target: 8443
+      published: "${GATEWAY_HTTPS_PORT:-10007}"
+    restart: unless-stopped
+
+volumes:
+  message-bus-data: {}
+  users-database-data: {}
+  notifications-database-data: {}
+  workspaces-database-data: {}
