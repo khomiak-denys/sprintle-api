@@ -19,6 +19,7 @@ using Workspaces.Application.Tasks.GetAll;
 using Workspaces.Application.Tasks.GetById;
 using Workspaces.Application.Tasks.GetComments;
 using Workspaces.Application.Tasks.GetMy;
+using Workspaces.Application.Tasks.GetStatusHistory;
 using Workspaces.Application.Tasks.SubmitForReview;
 
 namespace Workspaces.API.Tasks
@@ -380,6 +381,19 @@ namespace Workspaces.API.Tasks
             var result = await _mediator.Send(command, ct);
 
             return result.Match(NoContent(), error => this.ToActionResult(error));
+        }
+
+        [HttpGet("{id:guid}/status-history")]
+        [SwaggerOperation(Summary = "Gets the event-sourced status history Read Model for a task")]
+        [ProducesResponseType(typeof(IReadOnlyList<TaskStatusHistoryDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetStatusHistory(
+            Guid id,
+            CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetTaskStatusHistoryQuery(id), ct);
+            return result.Match(Ok(result.Value), error => this.ToActionResult(error));
         }
 
         private Guid GetUserId()

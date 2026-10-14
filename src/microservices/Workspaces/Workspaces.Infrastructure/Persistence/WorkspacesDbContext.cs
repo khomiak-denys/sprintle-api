@@ -3,12 +3,14 @@ using Workspaces.Application.Abstractions;
 using Workspaces.Domain.Tags;
 using Workspaces.Domain.Tasks;
 using Workspaces.Domain.Workspaces;
+using Workspaces.Infrastructure.Persistence.Entities;
 
 namespace Workspaces.Infrastructure.Persistence
 {
     public class WorkspacesDbContext : DbContext, IUnitOfWork
     {
         public DbSet<TaskItem> Tasks => Set<TaskItem>();
+        public DbSet<TaskEventRecord> TaskEvents => Set<TaskEventRecord>();
 
         public DbSet<Tag> Tags => Set<Tag>();
         public DbSet<TaskTag> TaskTags => Set<TaskTag>();

@@ -11,10 +11,12 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
     internal sealed class TaskRepository : ITaskRepository
     {
         private readonly WorkspacesDbContext _context;
+        private readonly ITaskEventStore _eventStore;
 
-        public TaskRepository(WorkspacesDbContext context)
+        public TaskRepository(WorkspacesDbContext context, ITaskEventStore eventStore)
         {
             _context = context;
+            _eventStore = eventStore;
         }
 
         /// <inheritdoc/>
@@ -25,6 +27,40 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
                     .ThenInclude(tt => tt.Tag)
                 .Include(t => t.TimeLogs)
                 .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public async Task<TaskItem?> GetByIdFromEventsAsync(Guid id, CancellationToken cancellationToken)
+        {
+            var events = await _eventStore.GetEventsAsync(id, cancellationToken);
+            if (events.Count == 0)
+            {
+                return await GetByIdAsync(id, cancellationToken);
+            }
+
+            var task = TaskItem.Rehydrate(id, events);
+
+            var stateTask = await _context.Tasks
+                .Include(t => t.TaskTags)
+                    .ThenInclude(tt => tt.Tag)
+                .Include(t => t.TimeLogs)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+
+            if (stateTask is not null)
+            {
+                foreach (var tag in stateTask.TaskTags)
+                {
+                    task.TaskTags.Add(tag);
+                }
+
+                foreach (var log in stateTask.TimeLogs)
+                {
+                    task.TimeLogs.Add(log);
+                }
+            }
+
+            return task;
         }
 
         /// <inheritdoc/>
@@ -170,7 +206,37 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public async Task AddAsync(TaskItem task, CancellationToken cancellationToken)
         {
+            if (task.UncommittedEvents.Count > 0)
+            {
+                var expectedVersion = task.Version - task.UncommittedEvents.Count;
+                await _eventStore.AppendEventsAsync(task.Id, expectedVersion, task.UncommittedEvents, cancellationToken);
+                task.ClearUncommittedEvents();
+            }
+
             await _context.Tasks.AddAsync(task, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public async Task SaveAggregateAsync(TaskItem task, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(task);
+
+            if (task.UncommittedEvents.Count > 0)
+            {
+                var expectedVersion = task.Version - task.UncommittedEvents.Count;
+                await _eventStore.AppendEventsAsync(task.Id, expectedVersion, task.UncommittedEvents, cancellationToken);
+                task.ClearUncommittedEvents();
+            }
+
+            var existingTask = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == task.Id, cancellationToken);
+            if (existingTask is null)
+            {
+                await _context.Tasks.AddAsync(task, cancellationToken);
+            }
+            else if (!ReferenceEquals(existingTask, task))
+            {
+                _context.Entry(existingTask).CurrentValues.SetValues(task);
+            }
         }
 
         /// <inheritdoc/>

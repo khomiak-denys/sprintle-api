@@ -118,6 +118,11 @@ namespace Workspaces.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<Guid>("WorkspaceId")
                         .HasColumnType("uuid");
 
@@ -231,6 +236,40 @@ namespace Workspaces.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("WorkspaceMembers", (string)null);
+                });
+
+            modelBuilder.Entity("Workspaces.Infrastructure.Persistence.Entities.TaskEventRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TaskId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskId");
+
+                    b.HasIndex("TaskId", "Version")
+                        .IsUnique();
+
+                    b.ToTable("TaskEvents", (string)null);
                 });
 
             modelBuilder.Entity("Workspaces.Domain.Tasks.TaskComment", b =>
