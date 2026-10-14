@@ -39,7 +39,8 @@ namespace Notifications.Infrastructure.Consumers
             Dispatcher = new EventDispatcher(routingConvention)
                 .Map<TaskAssigned>()
                 .Map<TaskStatusChanged>()
-                .Map<TaskCommentAdded>();
+                .Map<TaskCommentAdded>()
+                .Map<TaskTimeLogged>();
         }
     }
 }

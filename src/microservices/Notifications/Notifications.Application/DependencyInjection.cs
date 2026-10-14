@@ -34,6 +34,7 @@ namespace Notifications.Application
             services.AddScoped<IEventHandler<TaskAssigned>, TaskAssignedHandler>();
             services.AddScoped<IEventHandler<TaskStatusChanged>, TaskStatusChangedHandler>();
             services.AddScoped<IEventHandler<TaskCommentAdded>, TaskCommentAddedHandler>();
+            services.AddScoped<IEventHandler<TaskTimeLogged>, TaskTimeLoggedHandler>();
 
             return services;
         }
