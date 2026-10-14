@@ -28,11 +28,17 @@ var usersApi = builder.AddProject<Projects.Users_API>("Users-Service")
     .WithReference(messageBus)
     .WaitFor(messageBus);
 
+var mailpit = builder.AddContainer("mailpit", "axllent/mailpit")
+    .WithLifetime(ContainerLifetime.Session)
+    .WithHttpEndpoint(port: 8025, targetPort: 8025, name: "web")
+    .WithEndpoint(port: 1025, targetPort: 1025, scheme: "tcp", name: "smtp");
+
 var notificationsApi = builder.AddProject<Projects.Notifications_API>("Notifications-Service")
     .WithReference(notificationsDb)
     .WaitFor(notificationsDb)
     .WithReference(messageBus)
-    .WaitFor(messageBus);
+    .WaitFor(messageBus)
+    .WaitFor(mailpit);
 
 var workspacesApi = builder.AddProject<Projects.Workspaces_API>("Workspaces-Service")
     .WithReference(workspacesDb)
