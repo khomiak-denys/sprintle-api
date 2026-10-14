@@ -41,15 +41,29 @@ namespace Notifications.Infrastructure
             services.AddHostedService<TasksConsumer>();
 
             services.Configure<ResendOptions>(configuration.GetSection(ResendOptions.SectionName));
+            services.Configure<SmtpOptions>(configuration.GetSection(SmtpOptions.SectionName));
             services.Configure<FrontendOptions>(configuration.GetSection(FrontendOptions.SectionName));
 
-            var apiToken = configuration.GetSection(ResendOptions.SectionName)["ApiToken"] ?? string.Empty;
-            services.AddResend(options =>
-            {
-                options.ApiToken = apiToken;
-            });
+            var emailProvider = configuration["EmailProvider"];
+            var apiToken = configuration.GetSection(ResendOptions.SectionName)["ApiToken"];
 
-            services.AddTransient<IEmailSender, ResendEmailSender>();
+            var useResend = string.Equals(emailProvider, "Resend", StringComparison.OrdinalIgnoreCase)
+                || (!string.Equals(emailProvider, "Smtp", StringComparison.OrdinalIgnoreCase)
+                    && !string.IsNullOrWhiteSpace(apiToken)
+                    && !apiToken.Contains("your_resend_api_token", StringComparison.OrdinalIgnoreCase));
+
+            if (useResend)
+            {
+                services.AddResend(options =>
+                {
+                    options.ApiToken = apiToken ?? string.Empty;
+                });
+                services.AddTransient<IEmailSender, ResendEmailSender>();
+            }
+            else
+            {
+                services.AddTransient<IEmailSender, SmtpEmailSender>();
+            }
 
             return services;
         }
