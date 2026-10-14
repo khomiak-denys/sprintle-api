@@ -2,9 +2,7 @@ using EmailTemplates;
 using FluentAssertions;
 using Messaging.Contracts;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Notifications.Application.Abstractions;
-using Notifications.Application.Options;
 using Notifications.Application.Tasks;
 using Notifications.Domain.Notifications;
 using NSubstitute;
@@ -16,23 +14,15 @@ namespace Notifications.Application.Tests.Tasks
     {
         private readonly IEmailSender _emailSender;
         private readonly INotificationRepository _notificationRepository;
-        private readonly FrontendOptions _frontendOptions;
         private readonly TaskStatusChangedHandler _handler;
 
         public TaskStatusChangedHandlerTests()
         {
             _emailSender = Substitute.For<IEmailSender>();
             _notificationRepository = Substitute.For<INotificationRepository>();
-            _frontendOptions = new FrontendOptions
-            {
-                DashboardPageAddress = "http://localhost:4200/dashboard"
-            };
-
-            var optionsWrapper = Microsoft.Extensions.Options.Options.Create(_frontendOptions);
             _handler = new TaskStatusChangedHandler(
                 _emailSender,
                 _notificationRepository,
-                optionsWrapper,
                 NullLogger<TaskStatusChangedHandler>.Instance);
         }
 
@@ -97,7 +87,6 @@ namespace Notifications.Application.Tests.Tasks
             capturedBody.Should().Contain(assigneeUsername);
             capturedBody.Should().Contain("API Optimization");
             capturedBody.Should().Contain("Backend Workspace");
-            capturedBody.Should().Contain("View Task");
         }
 
         [Fact]

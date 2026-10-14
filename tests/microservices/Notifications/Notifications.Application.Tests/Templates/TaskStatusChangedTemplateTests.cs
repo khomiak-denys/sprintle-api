@@ -15,7 +15,6 @@ namespace Notifications.Application.Tests.Templates
             var oldStatus = "InReview";
             var newStatus = "Done";
             var changedBy = "alice_manager";
-            var taskUrl = "http://localhost:4200/dashboard?workspaceId=ws-1&taskId=task-2";
             var recipient = "bob_developer";
 
             // Act
@@ -25,7 +24,6 @@ namespace Notifications.Application.Tests.Templates
                 oldStatus,
                 newStatus,
                 changedBy,
-                taskUrl,
                 recipient);
 
             // Assert
@@ -38,8 +36,6 @@ namespace Notifications.Application.Tests.Templates
             html.Should().Contain("Done");
             html.Should().Contain("alice_manager");
             html.Should().Contain("bob_developer");
-            html.Should().Contain("http://localhost:4200/dashboard?workspaceId=ws-1&amp;taskId=task-2");
-            html.Should().Contain("View Task");
         }
 
         [Fact]
@@ -48,7 +44,6 @@ namespace Notifications.Application.Tests.Templates
             // Arrange
             var taskTitle = "Fix Bug";
             var workspaceName = "Fintech Core";
-            var taskUrl = "http://localhost:4200/dashboard";
 
             // Act
             var html = TaskStatusChangedTemplate.Render(
@@ -57,7 +52,6 @@ namespace Notifications.Application.Tests.Templates
                 "",
                 "",
                 "",
-                taskUrl,
                 null);
 
             // Assert
@@ -76,7 +70,6 @@ namespace Notifications.Application.Tests.Templates
             var oldStatus = "<i>Old</i>";
             var newStatus = "<u>New</u>";
             var changedBy = "<img src=x onerror=alert(1)>";
-            var taskUrl = "http://localhost:4200/dashboard?a=1&b=2";
             var recipient = "<p>Recipient</p>";
 
             // Act
@@ -86,7 +79,6 @@ namespace Notifications.Application.Tests.Templates
                 oldStatus,
                 newStatus,
                 changedBy,
-                taskUrl,
                 recipient);
 
             // Assert
@@ -105,7 +97,7 @@ namespace Notifications.Application.Tests.Templates
         public void Render_Should_ThrowArgumentException_When_TaskTitleIsNullOrWhiteSpace(string? invalidTitle)
         {
             // Act
-            var act = () => TaskStatusChangedTemplate.Render(invalidTitle!, "Workspace", "Todo", "InProgress", "user", "http://localhost:4200");
+            var act = () => TaskStatusChangedTemplate.Render(invalidTitle!, "Workspace", "Todo", "InProgress", "user");
 
             // Assert
             act.Should().Throw<ArgumentException>();
@@ -118,20 +110,7 @@ namespace Notifications.Application.Tests.Templates
         public void Render_Should_ThrowArgumentException_When_WorkspaceNameIsNullOrWhiteSpace(string? invalidWorkspace)
         {
             // Act
-            var act = () => TaskStatusChangedTemplate.Render("Task", invalidWorkspace!, "Todo", "InProgress", "user", "http://localhost:4200");
-
-            // Assert
-            act.Should().Throw<ArgumentException>();
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("   ")]
-        public void Render_Should_ThrowArgumentException_When_TaskUrlIsNullOrWhiteSpace(string? invalidUrl)
-        {
-            // Act
-            var act = () => TaskStatusChangedTemplate.Render("Task", "Workspace", "Todo", "InProgress", "user", invalidUrl!);
+            var act = () => TaskStatusChangedTemplate.Render("Task", invalidWorkspace!, "Todo", "InProgress", "user");
 
             // Assert
             act.Should().Throw<ArgumentException>();
