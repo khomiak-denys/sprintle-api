@@ -52,6 +52,9 @@ namespace Workspaces.Infrastructure.Persistence.Configurations
             builder.Property(t => t.Deadline);
             builder.Property(t => t.CreatedAt).IsRequired();
             builder.Property(t => t.UpdatedAt);
+            builder.Property(t => t.Version).IsRequired().HasDefaultValue(0);
+
+            builder.Ignore(t => t.UncommittedEvents);
 
             builder.HasMany(t => t.TimeLogs)
                 .WithOne(l => l.Task)

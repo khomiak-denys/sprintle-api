@@ -14,6 +14,24 @@ namespace Workspaces.Domain.Tasks
         /// <returns>The task, or <c>null</c> if not found.</returns>
         Task<TaskItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Loads a <see cref="TaskItem"/> aggregate root by rehydrating it from its stream of domain events.
+        /// If no events are stored for this task, falls back to loading the state entity.
+        /// </summary>
+        /// <param name="id">Task identifier.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The rehydrated task aggregate, or <c>null</c> if not found.</returns>
+        Task<TaskItem?> GetByIdFromEventsAsync(Guid id, CancellationToken cancellationToken) => GetByIdAsync(id, cancellationToken);
+
+        /// <summary>
+        /// Saves uncommitted domain events for the aggregate into the event store,
+        /// updates the Read Model projection, and clears uncommitted events.
+        /// </summary>
+        /// <param name="task">The task aggregate root.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task SaveAggregateAsync(TaskItem task, CancellationToken cancellationToken) => Task.CompletedTask;
+
         /// <summary>Returns a paginated list of all tasks matching optional filters.</summary>
         /// <param name="workspaceId">Optional workspace identifier filter.</param>
         /// <param name="search">Optional search term matching task title or description.</param>

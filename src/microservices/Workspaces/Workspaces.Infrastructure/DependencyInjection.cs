@@ -9,6 +9,7 @@ using Workspaces.Domain.Tasks;
 using Workspaces.Domain.Workspaces;
 using Workspaces.Infrastructure.Clients;
 using Workspaces.Infrastructure.Persistence;
+using Workspaces.Infrastructure.Persistence.EventSourcing;
 using Workspaces.Infrastructure.Persistence.Repositories;
 
 namespace Workspaces.Infrastructure
@@ -34,6 +35,7 @@ namespace Workspaces.Infrastructure
                 options.UseNpgsql(configuration.GetConnectionString("WorkspacesDb") ?? configuration.GetConnectionString("TasksDb")));
 
             services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<WorkspacesDbContext>());
+            services.AddScoped<ITaskEventStore, TaskEventStore>();
             services.AddScoped<ITaskRepository, TaskRepository>();
             services.AddScoped<ITagRepository, TagRepository>();
             services.AddScoped<IWorkspaceRepository, WorkspaceRepository>();

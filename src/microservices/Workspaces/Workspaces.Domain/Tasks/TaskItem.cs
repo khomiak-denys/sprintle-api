@@ -1,15 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using DomainFramework;
 using DomainFramework.Errors;
 using DomainFramework.Results;
+using Workspaces.Domain.Tasks.Events;
 using TaskStatus = Workspaces.Domain.Tasks.TaskStatus;
 
 namespace Workspaces.Domain.Tasks
 {
     /// <summary>
-    /// Represents a work item or task within a workspace.
-    /// Inherits auditing fields (Id, CreatedAt, UpdatedAt) from <see cref="EntityBase"/>.
+    /// Represents a work item or task aggregate root within a workspace.
+    /// Supports event sourcing for status transitions and lifecycle events.
     /// </summary>
-    public class TaskItem : EntityBase
+    public class TaskItem : AggregateRoot
     {
         /// <summary>Gets the unique identifier of the workspace this task belongs to.</summary>
         public Guid WorkspaceId { get; private set; }
@@ -46,6 +50,8 @@ namespace Workspaces.Domain.Tasks
 
         private TaskItem() { }
 
+        private TaskItem(Guid id) : base(id) { }
+
         private TaskItem(
             Guid workspaceId,
             string title,
@@ -67,6 +73,7 @@ namespace Workspaces.Domain.Tasks
 
         /// <summary>
         /// Factory method to create a new <see cref="TaskItem"/> bound to a workspace.
+        /// Raises a <see cref="TaskCreatedDomainEvent"/>.
         /// </summary>
         /// <param name="workspaceId">The workspace identifier.</param>
         /// <param name="title">Non-empty task title.</param>
@@ -85,8 +92,31 @@ namespace Workspaces.Domain.Tasks
             Guid? assigneeId,
             Guid createdById)
         {
-            var task = new TaskItem(workspaceId, title, description, priority, deadline, assigneeId, createdById);
-            task.OnCreate();
+            var task = new TaskItem(Guid.NewGuid());
+            var initialStatus = assigneeId.HasValue ? TaskStatus.InProgress : TaskStatus.Todo;
+            task.RaiseEvent(new TaskCreatedDomainEvent(
+                task.Id,
+                workspaceId,
+                title,
+                description,
+                priority,
+                deadline,
+                assigneeId,
+                createdById,
+                initialStatus));
+            return task;
+        }
+
+        /// <summary>
+        /// Rehydrates a <see cref="TaskItem"/> aggregate root from an ordered stream of historical domain events.
+        /// </summary>
+        /// <param name="id">The unique identifier of the task.</param>
+        /// <param name="events">The ordered collection of domain events.</param>
+        /// <returns>A rehydrated <see cref="TaskItem"/> with state matching the event stream.</returns>
+        public static TaskItem Rehydrate(Guid id, IEnumerable<IDomainEvent> events)
+        {
+            var task = new TaskItem(id);
+            task.Rehydrate(events);
             return task;
         }
 
@@ -146,6 +176,7 @@ namespace Workspaces.Domain.Tasks
 
         /// <summary>
         /// Assigns the task to a user and transitions its status from 'Todo' to 'InProgress'.
+        /// Raises a <see cref="TaskAssignedDomainEvent"/>.
         /// </summary>
         /// <param name="assigneeId">The user identifier to assign.</param>
         /// <returns>Success or validation failure result.</returns>
@@ -156,15 +187,13 @@ namespace Workspaces.Domain.Tasks
                 return Result.Failure(new InvalidArgumentError($"Task can only be assigned in 'Todo' status. Current status: '{Status}'."));
             }
 
-            AssigneeId = assigneeId;
-            Status = TaskStatus.InProgress;
-            OnModify();
+            RaiseEvent(new TaskAssignedDomainEvent(Id, assigneeId, Status, TaskStatus.InProgress));
             return Result.Success();
         }
 
-
         /// <summary>
         /// Submits the task for review, moving it from 'InProgress' to 'InReview'.
+        /// Raises a <see cref="TaskSubmittedForReviewDomainEvent"/>.
         /// </summary>
         /// <returns>Success or validation failure result.</returns>
         public Result SubmitForReview()
@@ -174,13 +203,13 @@ namespace Workspaces.Domain.Tasks
                 return Result.Failure(new InvalidArgumentError($"Task can only be submitted for review from 'InProgress' status. Current status: '{Status}'."));
             }
 
-            Status = TaskStatus.InReview;
-            OnModify();
+            RaiseEvent(new TaskSubmittedForReviewDomainEvent(Id, Status, TaskStatus.InReview));
             return Result.Success();
         }
 
         /// <summary>
         /// Marks the task as approved and completed ('Done').
+        /// Raises a <see cref="TaskApprovedDomainEvent"/>.
         /// </summary>
         /// <returns>Success or validation failure result.</returns>
         public Result Approve()
@@ -190,8 +219,7 @@ namespace Workspaces.Domain.Tasks
                 return Result.Failure(new InvalidArgumentError($"Task can only be approved from 'InReview' status. Current status: '{Status}'."));
             }
 
-            Status = TaskStatus.Done;
-            OnModify();
+            RaiseEvent(new TaskApprovedDomainEvent(Id, Status, TaskStatus.Done));
             return Result.Success();
         }
 
@@ -203,6 +231,7 @@ namespace Workspaces.Domain.Tasks
 
         /// <summary>
         /// Closes the task, moving it from 'Done' to 'Closed'.
+        /// Raises a <see cref="TaskClosedDomainEvent"/>.
         /// </summary>
         /// <returns>Success or validation failure result.</returns>
         public Result Close()
@@ -212,8 +241,23 @@ namespace Workspaces.Domain.Tasks
                 return Result.Failure(new InvalidArgumentError($"Task can only be closed from 'Done' status. Current status: '{Status}'."));
             }
 
-            Status = TaskStatus.Closed;
-            OnModify();
+            RaiseEvent(new TaskClosedDomainEvent(Id, Status, TaskStatus.Closed));
+            return Result.Success();
+        }
+
+        /// <summary>
+        /// Cancels the task from 'Todo', 'InProgress', or 'InReview' status.
+        /// Raises a <see cref="TaskCancelledDomainEvent"/>.
+        /// </summary>
+        /// <returns>Success or validation failure result.</returns>
+        public Result Cancel()
+        {
+            if (Status != TaskStatus.Todo && Status != TaskStatus.InProgress && Status != TaskStatus.InReview)
+            {
+                return Result.Failure(new InvalidArgumentError($"Task cannot be cancelled from '{Status}' status."));
+            }
+
+            RaiseEvent(new TaskCancelledDomainEvent(Id, Status, TaskStatus.Cancelled));
             return Result.Success();
         }
 
@@ -231,22 +275,6 @@ namespace Workspaces.Domain.Tasks
             TimeLogs.Add(log);
             OnModify();
             return log;
-        }
-
-        /// <summary>
-        /// Cancels the task from 'Todo', 'InProgress', or 'InReview' status.
-        /// </summary>
-        /// <returns>Success or validation failure result.</returns>
-        public Result Cancel()
-        {
-            if (Status != TaskStatus.Todo && Status != TaskStatus.InProgress && Status != TaskStatus.InReview)
-            {
-                return Result.Failure(new InvalidArgumentError($"Task cannot be cancelled from '{Status}' status."));
-            }
-
-            Status = TaskStatus.Cancelled;
-            OnModify();
-            return Result.Success();
         }
 
         /// <summary>
@@ -286,6 +314,51 @@ namespace Workspaces.Domain.Tasks
             Comments.Remove(comment);
             OnModify();
             return Result.Success();
+        }
+
+        /// <inheritdoc/>
+        protected override void Apply(IDomainEvent @event)
+        {
+            switch (@event)
+            {
+                case TaskCreatedDomainEvent e:
+                    WorkspaceId = e.WorkspaceId;
+                    Title = e.Title;
+                    Description = e.Description;
+                    Priority = e.Priority;
+                    Deadline = e.Deadline;
+                    AssigneeId = e.AssigneeId;
+                    CreatedById = e.CreatedById;
+                    Status = e.InitialStatus;
+                    CreatedAt = e.OccurredAt;
+                    break;
+
+                case TaskAssignedDomainEvent e:
+                    AssigneeId = e.AssigneeId;
+                    Status = e.NewStatus;
+                    UpdatedAt = e.OccurredAt;
+                    break;
+
+                case TaskSubmittedForReviewDomainEvent e:
+                    Status = e.NewStatus;
+                    UpdatedAt = e.OccurredAt;
+                    break;
+
+                case TaskApprovedDomainEvent e:
+                    Status = e.NewStatus;
+                    UpdatedAt = e.OccurredAt;
+                    break;
+
+                case TaskClosedDomainEvent e:
+                    Status = e.NewStatus;
+                    UpdatedAt = e.OccurredAt;
+                    break;
+
+                case TaskCancelledDomainEvent e:
+                    Status = e.NewStatus;
+                    UpdatedAt = e.OccurredAt;
+                    break;
+            }
         }
     }
 }

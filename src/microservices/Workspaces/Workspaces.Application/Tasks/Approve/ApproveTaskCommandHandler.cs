@@ -36,7 +36,7 @@ namespace Workspaces.Application.Tasks.Approve
         /// <inheritdoc/>
         public async Task<Result> Handle(ApproveTaskCommand command, CancellationToken cancellationToken)
         {
-            var task = await _taskRepository.GetByIdAsync(command.TaskId, cancellationToken);
+            var task = await _taskRepository.GetByIdFromEventsAsync(command.TaskId, cancellationToken);
             if (task is null)
             {
                 return Result.Failure(new NotFoundError($"Task '{command.TaskId}' was not found."));
@@ -54,6 +54,7 @@ namespace Workspaces.Application.Tasks.Approve
                 return result;
             }
 
+            await _taskRepository.SaveAggregateAsync(task, cancellationToken);
             await _uow.SaveChangesAsync(cancellationToken);
 
             var workspace = await _workspaceRepository.GetByIdAsync(task.WorkspaceId, cancellationToken);
