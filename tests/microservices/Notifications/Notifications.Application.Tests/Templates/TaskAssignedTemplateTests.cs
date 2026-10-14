@@ -7,7 +7,7 @@ namespace Notifications.Application.Tests.Templates
     public class TaskAssignedTemplateTests
     {
         [Fact]
-        public void Render_Should_GenerateHtmlWithTaskDetailsAndButton_When_ValidInputsProvided()
+        public void Render_Should_GenerateHtmlWithTaskDetails_When_ValidInputsProvided()
         {
             // Arrange
             var taskTitle = "Implement OAuth Flow";
@@ -16,7 +16,6 @@ namespace Notifications.Application.Tests.Templates
             var assignedByName = "Alice Manager";
             var priority = "Critical";
             var deadline = new DateTime(2026, 11, 20, 12, 0, 0, DateTimeKind.Utc);
-            var taskUrl = "http://localhost:4200/dashboard?workspaceId=ws-123&taskId=task-456";
             var recipientName = "Bob Developer";
 
             // Act
@@ -27,14 +26,12 @@ namespace Notifications.Application.Tests.Templates
                 assignedByName,
                 priority,
                 deadline,
-                taskUrl,
                 recipientName);
 
             // Assert
             html.Should().NotBeNullOrWhiteSpace();
             html.Should().Contain("<!DOCTYPE html>");
             html.Should().Contain("You've been assigned to a task");
-            html.Should().Contain("View Task");
             html.Should().Contain("Implement OAuth Flow");
             html.Should().Contain("Integrate OAuth2 with Google provider.");
             html.Should().Contain("Mobile Platform");
@@ -42,7 +39,6 @@ namespace Notifications.Application.Tests.Templates
             html.Should().Contain("Bob Developer");
             html.Should().Contain("Critical");
             html.Should().Contain("Nov 20, 2026");
-            html.Should().Contain("http://localhost:4200/dashboard?workspaceId=ws-123&amp;taskId=task-456");
             html.Should().Contain("TaskTracker");
             html.Should().Contain("background-color: #0078d4");
         }
@@ -53,7 +49,6 @@ namespace Notifications.Application.Tests.Templates
             // Arrange
             var taskTitle = "Fix Bug";
             var workspaceName = "Mobile Platform";
-            var taskUrl = "http://localhost:4200/dashboard";
 
             // Act
             var html = TaskAssignedTemplate.Render(
@@ -63,7 +58,6 @@ namespace Notifications.Application.Tests.Templates
                 "",
                 null,
                 null,
-                taskUrl,
                 null);
 
             // Assert
@@ -81,7 +75,6 @@ namespace Notifications.Application.Tests.Templates
             var taskDescription = "<b>Bold desc</b>";
             var workspaceName = "<i>Workspace</i>";
             var assignedByName = "<u>Assigner</u>";
-            var taskUrl = "http://localhost:4200/dashboard?a=1&b=2";
             var recipientName = "<img src=x onerror=alert(1)>";
 
             // Act
@@ -92,7 +85,6 @@ namespace Notifications.Application.Tests.Templates
                 assignedByName,
                 "High",
                 null,
-                taskUrl,
                 recipientName);
 
             // Assert
@@ -111,7 +103,7 @@ namespace Notifications.Application.Tests.Templates
         public void Render_Should_ThrowArgumentException_When_TaskTitleIsNullOrWhiteSpace(string? invalidTitle)
         {
             // Act
-            var act = () => TaskAssignedTemplate.Render(invalidTitle!, null, "Workspace", "Manager", null, null, "http://localhost:4200/dashboard");
+            var act = () => TaskAssignedTemplate.Render(invalidTitle!, null, "Workspace", "Manager", null, null);
 
             // Assert
             act.Should().Throw<ArgumentException>();
@@ -124,20 +116,7 @@ namespace Notifications.Application.Tests.Templates
         public void Render_Should_ThrowArgumentException_When_WorkspaceNameIsNullOrWhiteSpace(string? invalidWorkspace)
         {
             // Act
-            var act = () => TaskAssignedTemplate.Render("Task", null, invalidWorkspace!, "Manager", null, null, "http://localhost:4200/dashboard");
-
-            // Assert
-            act.Should().Throw<ArgumentException>();
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("   ")]
-        public void Render_Should_ThrowArgumentException_When_TaskUrlIsNullOrWhiteSpace(string? invalidUrl)
-        {
-            // Act
-            var act = () => TaskAssignedTemplate.Render("Task", null, "Workspace", "Manager", null, null, invalidUrl!);
+            var act = () => TaskAssignedTemplate.Render("Task", null, invalidWorkspace!, "Manager", null, null);
 
             // Assert
             act.Should().Throw<ArgumentException>();

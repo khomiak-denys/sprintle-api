@@ -2,9 +2,7 @@ using EmailTemplates;
 using FluentAssertions;
 using Messaging.Contracts;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Notifications.Application.Abstractions;
-using Notifications.Application.Options;
 using Notifications.Application.Tasks;
 using Notifications.Domain.Notifications;
 using NSubstitute;
@@ -16,23 +14,16 @@ namespace Notifications.Application.Tests.Tasks
     {
         private readonly IEmailSender _emailSender;
         private readonly INotificationRepository _notificationRepository;
-        private readonly FrontendOptions _frontendOptions;
         private readonly TaskAssignedHandler _handler;
 
         public TaskAssignedHandlerTests()
         {
             _emailSender = Substitute.For<IEmailSender>();
             _notificationRepository = Substitute.For<INotificationRepository>();
-            _frontendOptions = new FrontendOptions
-            {
-                DashboardPageAddress = "http://localhost:4200/dashboard"
-            };
 
-            var optionsWrapper = Microsoft.Extensions.Options.Options.Create(_frontendOptions);
             _handler = new TaskAssignedHandler(
                 _emailSender,
                 _notificationRepository,
-                optionsWrapper,
                 NullLogger<TaskAssignedHandler>.Instance);
         }
 
@@ -101,9 +92,6 @@ namespace Notifications.Application.Tests.Tasks
             capturedBody.Should().Contain(assignerName);
             capturedBody.Should().Contain(assigneeName);
             capturedBody.Should().Contain(priority);
-            capturedBody.Should().Contain(taskId.ToString());
-            capturedBody.Should().Contain(workspaceId.ToString());
-            capturedBody.Should().Contain("View Task");
         }
 
         [Fact]
@@ -176,49 +164,6 @@ namespace Notifications.Application.Tests.Tasks
                 Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>());
-        }
-
-        [Fact]
-        public async Task HandleAsync_Should_UseFallbackDashboardUrl_When_DashboardAddressNotConfigured()
-        {
-            // Arrange
-            var customOptions = Microsoft.Extensions.Options.Options.Create(new FrontendOptions { DashboardPageAddress = "" });
-            var handler = new TaskAssignedHandler(
-                _emailSender,
-                _notificationRepository,
-                customOptions,
-                NullLogger<TaskAssignedHandler>.Instance);
-
-            var taskId = Guid.NewGuid();
-            var workspaceId = Guid.NewGuid();
-            var assigneeId = Guid.NewGuid();
-            var @event = new TaskAssigned(
-                taskId,
-                "Task Title",
-                null,
-                workspaceId,
-                "Design",
-                assigneeId,
-                "test@example.com",
-                "User",
-                Guid.NewGuid(),
-                "Manager",
-                "Low",
-                null);
-
-            string? capturedBody = null;
-            _emailSender.SendAsync(
-                Arg.Any<string>(),
-                Arg.Any<string>(),
-                Arg.Do<string>(body => capturedBody = body),
-                Arg.Any<CancellationToken>())
-                .Returns(Task.CompletedTask);
-
-            // Act
-            await handler.HandleAsync(@event, CancellationToken.None);
-
-            // Assert
-            capturedBody.Should().Contain($"http://localhost:4200/dashboard?workspaceId={workspaceId}&amp;taskId={taskId}");
         }
 
         [Fact]

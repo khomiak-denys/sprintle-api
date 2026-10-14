@@ -3,9 +3,7 @@ using EmailTemplates;
 using Messaging.Abstractions;
 using Messaging.Contracts;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Notifications.Application.Abstractions;
-using Notifications.Application.Options;
 using Notifications.Domain.Notifications;
 
 namespace Notifications.Application.Tasks
@@ -17,7 +15,6 @@ namespace Notifications.Application.Tasks
     {
         private readonly IEmailSender _emailSender;
         private readonly INotificationRepository _notificationRepository;
-        private readonly IOptions<FrontendOptions> _frontendOptions;
         private readonly ILogger<TaskAssignedHandler> _logger;
 
         /// <summary>
@@ -25,17 +22,14 @@ namespace Notifications.Application.Tasks
         /// </summary>
         /// <param name="emailSender">The email sender service.</param>
         /// <param name="notificationRepository">The notification repository for inspecting user preferences.</param>
-        /// <param name="frontendOptions">The frontend options containing application addresses.</param>
         /// <param name="logger">The logger instance.</param>
         public TaskAssignedHandler(
             IEmailSender emailSender,
             INotificationRepository notificationRepository,
-            IOptions<FrontendOptions> frontendOptions,
             ILogger<TaskAssignedHandler> logger)
         {
             _emailSender = emailSender;
             _notificationRepository = notificationRepository;
-            _frontendOptions = frontendOptions;
             _logger = logger;
         }
 
@@ -55,15 +49,6 @@ namespace Notifications.Application.Tasks
                 return;
             }
 
-            var baseUrl = _frontendOptions.Value.DashboardPageAddress;
-            if (string.IsNullOrWhiteSpace(baseUrl))
-            {
-                baseUrl = "http://localhost:4200/dashboard";
-            }
-
-            var separator = baseUrl.Contains('?', StringComparison.Ordinal) ? "&" : "?";
-            var taskUrl = $"{baseUrl}{separator}workspaceId={@event.WorkspaceId}&taskId={@event.TaskId}";
-
             var htmlBody = TaskAssignedTemplate.Render(
                 @event.TaskTitle,
                 @event.TaskDescription,
@@ -71,7 +56,6 @@ namespace Notifications.Application.Tasks
                 @event.AssignedByName,
                 @event.Priority,
                 @event.Deadline,
-                taskUrl,
                 @event.AssigneeName);
 
             var subject = TaskAssignedTemplate.GetSubject(@event.TaskTitle, @event.WorkspaceName);
