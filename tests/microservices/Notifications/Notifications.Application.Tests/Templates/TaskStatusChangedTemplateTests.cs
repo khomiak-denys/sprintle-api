@@ -146,6 +146,62 @@ namespace Notifications.Application.Tests.Templates
             subject.Should().Be("Task 'Setup DB' status changed to InProgress in 'Core' - TaskTracker");
         }
 
+        [Fact]
+        public void GetSubject_Should_ReturnCancelledSubject_When_NewStatusIsCancelled()
+        {
+            // Act
+            var subjectWithWorkspace = TaskStatusChangedTemplate.GetSubject("Setup DB", "Cancelled", "Core");
+            var subjectWithoutWorkspace = TaskStatusChangedTemplate.GetSubject("Setup DB", "Cancelled", null);
+
+            // Assert
+            subjectWithWorkspace.Should().Be("Task 'Setup DB' in 'Core' has been cancelled - TaskTracker");
+            subjectWithoutWorkspace.Should().Be("Task 'Setup DB' has been cancelled - TaskTracker");
+        }
+
+        [Fact]
+        public void Render_Should_ContainTaskCancelledHeadline_When_NewStatusIsCancelled()
+        {
+            // Act
+            var html = TaskStatusChangedTemplate.Render(
+                "Setup DB",
+                "Core",
+                "InProgress",
+                "Cancelled",
+                "admin",
+                "assignee");
+
+            // Assert
+            html.Should().Contain("Task Cancelled");
+        }
+
+        [Fact]
+        public void GetSubject_Should_ReturnClosedSubject_When_NewStatusIsClosed()
+        {
+            // Act
+            var subjectWithWorkspace = TaskStatusChangedTemplate.GetSubject("Setup DB", "Closed", "Core");
+            var subjectWithoutWorkspace = TaskStatusChangedTemplate.GetSubject("Setup DB", "Closed", null);
+
+            // Assert
+            subjectWithWorkspace.Should().Be("Task 'Setup DB' in 'Core' has been closed - TaskTracker");
+            subjectWithoutWorkspace.Should().Be("Task 'Setup DB' has been closed - TaskTracker");
+        }
+
+        [Fact]
+        public void Render_Should_ContainTaskClosedHeadline_When_NewStatusIsClosed()
+        {
+            // Act
+            var html = TaskStatusChangedTemplate.Render(
+                "Setup DB",
+                "Core",
+                "Done",
+                "Closed",
+                "admin",
+                "assignee");
+
+            // Assert
+            html.Should().Contain("Task Closed");
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("")]

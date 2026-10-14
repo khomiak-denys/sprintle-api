@@ -41,6 +41,20 @@ namespace EmailTemplates
                     : $"Task '{taskTitle}' in '{workspaceName}' has been completed and submitted for review - TaskTracker";
             }
 
+            if (string.Equals(newStatus, "Cancelled", StringComparison.OrdinalIgnoreCase))
+            {
+                return string.IsNullOrWhiteSpace(workspaceName)
+                    ? $"Task '{taskTitle}' has been cancelled - TaskTracker"
+                    : $"Task '{taskTitle}' in '{workspaceName}' has been cancelled - TaskTracker";
+            }
+
+            if (string.Equals(newStatus, "Closed", StringComparison.OrdinalIgnoreCase))
+            {
+                return string.IsNullOrWhiteSpace(workspaceName)
+                    ? $"Task '{taskTitle}' has been closed - TaskTracker"
+                    : $"Task '{taskTitle}' in '{workspaceName}' has been closed - TaskTracker";
+            }
+
             var statusLabel = string.IsNullOrWhiteSpace(newStatus) ? "Updated" : newStatus;
             return string.IsNullOrWhiteSpace(workspaceName)
                 ? $"Task '{taskTitle}' status changed to {statusLabel} - TaskTracker"
@@ -216,6 +230,16 @@ namespace EmailTemplates
             if (string.Equals(newStatus, "InReview", StringComparison.OrdinalIgnoreCase))
             {
                 return "Task Completed &amp; Submitted for Review";
+            }
+
+            if (string.Equals(newStatus, "Cancelled", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Task Cancelled";
+            }
+
+            if (string.Equals(newStatus, "Closed", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Task Closed";
             }
 
             return "Task Status Updated";

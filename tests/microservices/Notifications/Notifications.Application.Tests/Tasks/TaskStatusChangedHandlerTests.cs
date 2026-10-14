@@ -223,6 +223,274 @@ namespace Notifications.Application.Tests.Tasks
         }
 
         [Fact]
+        public async Task HandleAsync_Should_SendEmailToAssignee_When_TaskCancelled()
+        {
+            // Arrange
+            var taskId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            var creatorId = Guid.NewGuid();
+            var assigneeId = Guid.NewGuid();
+            var assigneeEmail = "assignee@example.com";
+            var assigneeName = "Assignee Developer";
+            var managerUsername = "manager_sarah";
+
+            var notification = Notification.Create(assigneeId, assigneeEmail, "assignee_user", NotificationType.Email, enabled: true);
+            _notificationRepository.GetByUserIdAndTypeAsync(assigneeId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(notification);
+
+            var @event = new TaskStatusChanged(
+                taskId,
+                "Refactor Module",
+                workspaceId,
+                "Platform Team",
+                "InProgress",
+                "Cancelled",
+                creatorId,
+                managerUsername,
+                creatorId,
+                "sarah@example.com",
+                managerUsername,
+                assigneeId,
+                assigneeEmail,
+                assigneeName);
+
+            string? capturedTo = null;
+            string? capturedSubject = null;
+            string? capturedBody = null;
+
+            _emailSender.SendAsync(
+                Arg.Do<string>(to => capturedTo = to),
+                Arg.Do<string>(sub => capturedSubject = sub),
+                Arg.Do<string>(body => capturedBody = body),
+                Arg.Any<CancellationToken>())
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _handler.HandleAsync(@event, CancellationToken.None);
+
+            // Assert
+            await _emailSender.Received(1).SendAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>());
+
+            capturedTo.Should().Be(assigneeEmail);
+            capturedSubject.Should().Be(TaskStatusChangedTemplate.GetSubject("Refactor Module", "Cancelled", "Platform Team"));
+            capturedBody.Should().NotBeNullOrWhiteSpace();
+            capturedBody.Should().Contain("Refactor Module");
+            capturedBody.Should().Contain("Task Cancelled");
+            capturedBody.Should().Contain("InProgress");
+            capturedBody.Should().Contain("Cancelled");
+            capturedBody.Should().Contain(managerUsername);
+        }
+
+        [Fact]
+        public async Task HandleAsync_Should_NotSendEmail_When_TaskCancelledAndUnassigned()
+        {
+            // Arrange
+            var taskId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            var creatorId = Guid.NewGuid();
+
+            var @event = new TaskStatusChanged(
+                taskId,
+                "Unassigned Task",
+                workspaceId,
+                "Platform Team",
+                "Todo",
+                "Cancelled",
+                creatorId,
+                "creator_user",
+                creatorId,
+                "creator@example.com",
+                "Creator User",
+                null,
+                null,
+                null);
+
+            // Act
+            await _handler.HandleAsync(@event, CancellationToken.None);
+
+            // Assert
+            await _emailSender.DidNotReceive().SendAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task HandleAsync_Should_NotSendEmail_When_TaskCancelledByAssigneeThemselves()
+        {
+            // Arrange
+            var taskId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            var assigneeId = Guid.NewGuid();
+            var creatorId = Guid.NewGuid();
+
+            var @event = new TaskStatusChanged(
+                taskId,
+                "Self Cancelled Task",
+                workspaceId,
+                "Platform Team",
+                "InProgress",
+                "Cancelled",
+                assigneeId,
+                "assignee_user",
+                creatorId,
+                "creator@example.com",
+                "Creator User",
+                assigneeId,
+                "assignee@example.com",
+                "Assignee User");
+
+            // Act
+            await _handler.HandleAsync(@event, CancellationToken.None);
+
+            // Assert
+            await _emailSender.DidNotReceive().SendAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task HandleAsync_Should_SendEmailToAssignee_When_TaskClosed()
+        {
+            // Arrange
+            var taskId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            var creatorId = Guid.NewGuid();
+            var assigneeId = Guid.NewGuid();
+            var assigneeEmail = "assignee@example.com";
+            var assigneeName = "Assignee Developer";
+            var managerUsername = "manager_sarah";
+
+            var notification = Notification.Create(assigneeId, assigneeEmail, "assignee_user", NotificationType.Email, enabled: true);
+            _notificationRepository.GetByUserIdAndTypeAsync(assigneeId, NotificationType.Email, Arg.Any<CancellationToken>())
+                .Returns(notification);
+
+            var @event = new TaskStatusChanged(
+                taskId,
+                "Ship Release",
+                workspaceId,
+                "Platform Team",
+                "Done",
+                "Closed",
+                creatorId,
+                managerUsername,
+                creatorId,
+                "sarah@example.com",
+                managerUsername,
+                assigneeId,
+                assigneeEmail,
+                assigneeName);
+
+            string? capturedTo = null;
+            string? capturedSubject = null;
+            string? capturedBody = null;
+
+            _emailSender.SendAsync(
+                Arg.Do<string>(to => capturedTo = to),
+                Arg.Do<string>(sub => capturedSubject = sub),
+                Arg.Do<string>(body => capturedBody = body),
+                Arg.Any<CancellationToken>())
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _handler.HandleAsync(@event, CancellationToken.None);
+
+            // Assert
+            await _emailSender.Received(1).SendAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>());
+
+            capturedTo.Should().Be(assigneeEmail);
+            capturedSubject.Should().Be(TaskStatusChangedTemplate.GetSubject("Ship Release", "Closed", "Platform Team"));
+            capturedBody.Should().NotBeNullOrWhiteSpace();
+            capturedBody.Should().Contain("Ship Release");
+            capturedBody.Should().Contain("Task Closed");
+            capturedBody.Should().Contain("Done");
+            capturedBody.Should().Contain("Closed");
+            capturedBody.Should().Contain(managerUsername);
+        }
+
+        [Fact]
+        public async Task HandleAsync_Should_NotSendEmail_When_TaskClosedAndUnassigned()
+        {
+            // Arrange
+            var taskId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            var creatorId = Guid.NewGuid();
+
+            var @event = new TaskStatusChanged(
+                taskId,
+                "Unassigned Task",
+                workspaceId,
+                "Platform Team",
+                "Done",
+                "Closed",
+                creatorId,
+                "creator_user",
+                creatorId,
+                "creator@example.com",
+                "Creator User",
+                null,
+                null,
+                null);
+
+            // Act
+            await _handler.HandleAsync(@event, CancellationToken.None);
+
+            // Assert
+            await _emailSender.DidNotReceive().SendAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task HandleAsync_Should_NotSendEmail_When_TaskClosedByAssigneeThemselves()
+        {
+            // Arrange
+            var taskId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            var assigneeId = Guid.NewGuid();
+            var creatorId = Guid.NewGuid();
+
+            var @event = new TaskStatusChanged(
+                taskId,
+                "Self Closed Task",
+                workspaceId,
+                "Platform Team",
+                "Done",
+                "Closed",
+                assigneeId,
+                "assignee_user",
+                creatorId,
+                "creator@example.com",
+                "Creator User",
+                assigneeId,
+                "assignee@example.com",
+                "Assignee User");
+
+            // Act
+            await _handler.HandleAsync(@event, CancellationToken.None);
+
+            // Assert
+            await _emailSender.DidNotReceive().SendAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
         public async Task HandleAsync_Should_ThrowArgumentNullException_When_EventIsNull()
         {
             // Act
