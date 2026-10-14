@@ -9,6 +9,7 @@ COPY src/microservices/Workspaces/Workspaces.Application/*.csproj src/microservi
 COPY src/microservices/Workspaces/Workspaces.Infrastructure/*.csproj src/microservices/Workspaces/Workspaces.Infrastructure/
 COPY src/microservices/Workspaces/Workspaces.Domain/*.csproj src/microservices/Workspaces/Workspaces.Domain/
 COPY src/shared-libs/DomainFramework/*.csproj src/shared-libs/DomainFramework/
+COPY src/shared-libs/MessageBus/*.csproj src/shared-libs/MessageBus/
 COPY src/shared-libs/Messaging/*.csproj src/shared-libs/Messaging/
 COPY src/shared-libs/Messaging.Contracts/*.csproj src/shared-libs/Messaging.Contracts/
 COPY src/shared-libs/MigrationsExtensions/*.csproj src/shared-libs/MigrationsExtensions/

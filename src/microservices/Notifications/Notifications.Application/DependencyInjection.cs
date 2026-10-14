@@ -3,6 +3,7 @@ using Messaging.Abstractions;
 using Messaging.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Notifications.Application.Users;
+using Notifications.Application.Workspaces;
 
 namespace Notifications.Application
 {
@@ -28,6 +29,7 @@ namespace Notifications.Application
             services.AddScoped<IEventHandler<UserRegistered>, UserRegisteredHandler>();
             services.AddScoped<IEventHandler<UserEmailConfirmed>, UserEmailConfirmedHandler>();
             services.AddScoped<IEventHandler<UserEmailConfirmationRequested>, UserEmailConfirmationRequestedHandler>();
+            services.AddScoped<IEventHandler<WorkspaceMemberAdded>, WorkspaceMemberAddedHandler>();
 
             return services;
         }

@@ -37,6 +37,7 @@ namespace Notifications.Infrastructure
 
             services.AddMessageBus(configuration);
             services.AddHostedService<UsersConsumer>();
+            services.AddHostedService<WorkspacesConsumer>();
 
             services.Configure<ResendOptions>(configuration.GetSection(ResendOptions.SectionName));
             services.Configure<FrontendOptions>(configuration.GetSection(FrontendOptions.SectionName));

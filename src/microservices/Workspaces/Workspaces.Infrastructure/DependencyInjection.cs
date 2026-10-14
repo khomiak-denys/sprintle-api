@@ -1,3 +1,4 @@
+using MessageBus;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -42,6 +43,8 @@ namespace Workspaces.Infrastructure
                 client.BaseAddress = new Uri(configuration["UsersApi:BaseUrl"]
                     ?? throw new InvalidOperationException("UsersApi URL is not configured."));
             });
+
+            services.AddMessageBus(configuration);
 
             return services;
         }
