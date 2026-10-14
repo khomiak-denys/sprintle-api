@@ -174,6 +174,34 @@ namespace Notifications.Application.Tests.Templates
             html.Should().Contain("Task Cancelled");
         }
 
+        [Fact]
+        public void GetSubject_Should_ReturnClosedSubject_When_NewStatusIsClosed()
+        {
+            // Act
+            var subjectWithWorkspace = TaskStatusChangedTemplate.GetSubject("Setup DB", "Closed", "Core");
+            var subjectWithoutWorkspace = TaskStatusChangedTemplate.GetSubject("Setup DB", "Closed", null);
+
+            // Assert
+            subjectWithWorkspace.Should().Be("Task 'Setup DB' in 'Core' has been closed - TaskTracker");
+            subjectWithoutWorkspace.Should().Be("Task 'Setup DB' has been closed - TaskTracker");
+        }
+
+        [Fact]
+        public void Render_Should_ContainTaskClosedHeadline_When_NewStatusIsClosed()
+        {
+            // Act
+            var html = TaskStatusChangedTemplate.Render(
+                "Setup DB",
+                "Core",
+                "Done",
+                "Closed",
+                "admin",
+                "assignee");
+
+            // Assert
+            html.Should().Contain("Task Closed");
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("")]
