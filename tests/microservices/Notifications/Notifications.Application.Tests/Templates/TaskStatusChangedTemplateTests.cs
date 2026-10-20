@@ -123,7 +123,7 @@ namespace Notifications.Application.Tests.Templates
             var subject = TaskStatusChangedTemplate.GetSubject("Setup DB", "Done", "Core");
 
             // Assert
-            subject.Should().Be("Task 'Setup DB' in 'Core' has been approved - TaskTracker");
+            subject.Should().Be("Task 'Setup DB' in 'Core' has been approved - Sprintle");
         }
 
         [Fact]
@@ -133,7 +133,7 @@ namespace Notifications.Application.Tests.Templates
             var subject = TaskStatusChangedTemplate.GetSubject("Setup DB", "InReview", "Core");
 
             // Assert
-            subject.Should().Be("Task 'Setup DB' in 'Core' has been completed and submitted for review - TaskTracker");
+            subject.Should().Be("Task 'Setup DB' in 'Core' has been completed and submitted for review - Sprintle");
         }
 
         [Fact]
@@ -143,7 +143,7 @@ namespace Notifications.Application.Tests.Templates
             var subject = TaskStatusChangedTemplate.GetSubject("Setup DB", "InProgress", "Core");
 
             // Assert
-            subject.Should().Be("Task 'Setup DB' status changed to InProgress in 'Core' - TaskTracker");
+            subject.Should().Be("Task 'Setup DB' status changed to InProgress in 'Core' - Sprintle");
         }
 
         [Fact]
@@ -154,8 +154,8 @@ namespace Notifications.Application.Tests.Templates
             var subjectWithoutWorkspace = TaskStatusChangedTemplate.GetSubject("Setup DB", "Cancelled", null);
 
             // Assert
-            subjectWithWorkspace.Should().Be("Task 'Setup DB' in 'Core' has been cancelled - TaskTracker");
-            subjectWithoutWorkspace.Should().Be("Task 'Setup DB' has been cancelled - TaskTracker");
+            subjectWithWorkspace.Should().Be("Task 'Setup DB' in 'Core' has been cancelled - Sprintle");
+            subjectWithoutWorkspace.Should().Be("Task 'Setup DB' has been cancelled - Sprintle");
         }
 
         [Fact]
@@ -182,8 +182,8 @@ namespace Notifications.Application.Tests.Templates
             var subjectWithoutWorkspace = TaskStatusChangedTemplate.GetSubject("Setup DB", "Closed", null);
 
             // Assert
-            subjectWithWorkspace.Should().Be("Task 'Setup DB' in 'Core' has been closed - TaskTracker");
-            subjectWithoutWorkspace.Should().Be("Task 'Setup DB' has been closed - TaskTracker");
+            subjectWithWorkspace.Should().Be("Task 'Setup DB' in 'Core' has been closed - Sprintle");
+            subjectWithoutWorkspace.Should().Be("Task 'Setup DB' has been closed - Sprintle");
         }
 
         [Fact]

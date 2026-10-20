@@ -130,7 +130,7 @@ namespace Notifications.Application.Tests.Templates
             var subject = TaskCommentAddedTemplate.GetSubject("Fix Bug", "Platform");
 
             // Assert
-            subject.Should().Be("New comment on 'Fix Bug' in 'Platform' - TaskTracker");
+            subject.Should().Be("New comment on 'Fix Bug' in 'Platform' - Sprintle");
         }
 
         [Fact]
@@ -140,7 +140,7 @@ namespace Notifications.Application.Tests.Templates
             var subject = TaskCommentAddedTemplate.GetSubject("Fix Bug", null);
 
             // Assert
-            subject.Should().Be("New comment on 'Fix Bug' - TaskTracker");
+            subject.Should().Be("New comment on 'Fix Bug' - Sprintle");
         }
 
         [Theory]

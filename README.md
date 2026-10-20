@@ -1,4 +1,4 @@
-# TaskTracker
+# Sprintle
 
 A RESTful API built with ASP.NET Core and Clean Architecture (API → Application → Domain ← Infrastructure).
 
@@ -57,8 +57,8 @@ You can prepare a JSON configuration file (e.g. `input.json`):
   },
   "JwtOptions": {
     "Key": "your-secret-key-at-least-32-characters-long",
-    "Issuer": "TaskTracker",
-    "Audience": "TaskTrackerClient",
+    "Issuer": "Sprintle",
+    "Audience": "SprintleClient",
     "TokenValidityMins": "60"
   },
   "IntegrationApiKeyOptions": {

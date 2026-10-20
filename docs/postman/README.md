@@ -1,11 +1,11 @@
 # Postman API Documentation & Testing
 
-This directory contains the Postman collection and environment files for testing all endpoints across the Task Tracker microservices.
+This directory contains the Postman collection and environment files for testing all endpoints across the Sprintle microservices.
 
 ## Files
 
-- [TaskTracker.postman_collection.json](TaskTracker.postman_collection.json): Full Postman Collection (v2.1.0) with all endpoints, request bodies, path variables, query parameters, authorization setup, and test scripts.
-- [TaskTracker.postman_environment.json](TaskTracker.postman_environment.json): Pre-configured local environment with service base URLs and placeholder variables.
+- [Sprintle.postman_collection.json](Sprintle.postman_collection.json): Full Postman Collection (v2.1.0) with all endpoints, request bodies, path variables, query parameters, authorization setup, and test scripts.
+- [Sprintle.postman_environment.json](Sprintle.postman_environment.json): Pre-configured local environment with service base URLs and placeholder variables.
 
 ---
 
@@ -55,8 +55,8 @@ Similarly, `Create Task` and `Create Workspace` automatically persist `taskId` a
 
 1. **Import Files into Postman**:
    - In Postman, click **Import** in the top-left corner.
-   - Select both `TaskTracker.postman_collection.json` and `TaskTracker.postman_environment.json`.
-   - Select the `Task Tracker - Local Environment` in the environment dropdown (top right).
+   - Select both `Sprintle.postman_collection.json` and `Sprintle.postman_environment.json`.
+   - Select the `Sprintle - Local Environment` in the environment dropdown (top right).
 
 2. **Register or Log in**:
    - Open folder `01. Auth` &rarr; Send `Register` (or `Login`).

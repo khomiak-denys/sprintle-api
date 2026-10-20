@@ -11,7 +11,7 @@ namespace EmailTemplates
         /// <summary>
         /// Default email subject for task status change notifications.
         /// </summary>
-        public const string DefaultSubject = "Task status updated - TaskTracker";
+        public const string DefaultSubject = "Task status updated - Sprintle";
 
         /// <summary>
         /// Generates a customized subject line including the task title and the new status.
@@ -30,35 +30,35 @@ namespace EmailTemplates
             if (string.Equals(newStatus, "Done", StringComparison.OrdinalIgnoreCase))
             {
                 return string.IsNullOrWhiteSpace(workspaceName)
-                    ? $"Task '{taskTitle}' has been approved - TaskTracker"
-                    : $"Task '{taskTitle}' in '{workspaceName}' has been approved - TaskTracker";
+                    ? $"Task '{taskTitle}' has been approved - Sprintle"
+                    : $"Task '{taskTitle}' in '{workspaceName}' has been approved - Sprintle";
             }
 
             if (string.Equals(newStatus, "InReview", StringComparison.OrdinalIgnoreCase))
             {
                 return string.IsNullOrWhiteSpace(workspaceName)
-                    ? $"Task '{taskTitle}' has been completed and submitted for review - TaskTracker"
-                    : $"Task '{taskTitle}' in '{workspaceName}' has been completed and submitted for review - TaskTracker";
+                    ? $"Task '{taskTitle}' has been completed and submitted for review - Sprintle"
+                    : $"Task '{taskTitle}' in '{workspaceName}' has been completed and submitted for review - Sprintle";
             }
 
             if (string.Equals(newStatus, "Cancelled", StringComparison.OrdinalIgnoreCase))
             {
                 return string.IsNullOrWhiteSpace(workspaceName)
-                    ? $"Task '{taskTitle}' has been cancelled - TaskTracker"
-                    : $"Task '{taskTitle}' in '{workspaceName}' has been cancelled - TaskTracker";
+                    ? $"Task '{taskTitle}' has been cancelled - Sprintle"
+                    : $"Task '{taskTitle}' in '{workspaceName}' has been cancelled - Sprintle";
             }
 
             if (string.Equals(newStatus, "Closed", StringComparison.OrdinalIgnoreCase))
             {
                 return string.IsNullOrWhiteSpace(workspaceName)
-                    ? $"Task '{taskTitle}' has been closed - TaskTracker"
-                    : $"Task '{taskTitle}' in '{workspaceName}' has been closed - TaskTracker";
+                    ? $"Task '{taskTitle}' has been closed - Sprintle"
+                    : $"Task '{taskTitle}' in '{workspaceName}' has been closed - Sprintle";
             }
 
             var statusLabel = string.IsNullOrWhiteSpace(newStatus) ? "Updated" : newStatus;
             return string.IsNullOrWhiteSpace(workspaceName)
-                ? $"Task '{taskTitle}' status changed to {statusLabel} - TaskTracker"
-                : $"Task '{taskTitle}' status changed to {statusLabel} in '{workspaceName}' - TaskTracker";
+                ? $"Task '{taskTitle}' status changed to {statusLabel} - Sprintle"
+                : $"Task '{taskTitle}' status changed to {statusLabel} in '{workspaceName}' - Sprintle";
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace EmailTemplates
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>{{headline}} - TaskTracker</title>
+                    <title>{{headline}} - Sprintle</title>
                     <style>
                         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
                         body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
@@ -128,7 +128,7 @@ namespace EmailTemplates
                                                         <span style="color: #ffffff; font-size: 20px; font-weight: 700; line-height: 36px; display: inline-block;">✓</span>
                                                     </td>
                                                     <td style="padding-left: 12px; vertical-align: middle;">
-                                                        <span style="font-size: 20px; font-weight: 700; color: #0078d4; letter-spacing: -0.3px;">TaskTracker</span>
+                                                        <span style="font-size: 20px; font-weight: 700; color: #0078d4; letter-spacing: -0.3px;">Sprintle</span>
                                                     </td>
                                                 </tr>
                                             </table>
@@ -207,8 +207,8 @@ namespace EmailTemplates
                                     <!-- Security Notice & Footer -->
                                     <tr>
                                         <td align="left" style="font-size: 12px; line-height: 1.5; color: #a19f9d; border-top: 1px solid #edebe9; padding-top: 24px;">
-                                            <p style="margin: 0 0 8px 0;">You received this email because you are a participant in this task on TaskTracker.</p>
-                                            <p style="margin: 0;">&copy; 2026 TaskTracker. All rights reserved.</p>
+                                            <p style="margin: 0 0 8px 0;">You received this email because you are a participant in this task on Sprintle.</p>
+                                            <p style="margin: 0;">&copy; 2026 Sprintle. All rights reserved.</p>
                                         </td>
                                     </tr>
                                 </table>

@@ -40,7 +40,7 @@ namespace Notifications.Infrastructure.Emails
 
             var host = string.IsNullOrWhiteSpace(_options.Value.Host) ? "localhost" : _options.Value.Host;
             var port = _options.Value.Port <= 0 ? 1025 : _options.Value.Port;
-            var from = string.IsNullOrWhiteSpace(_options.Value.From) ? "TaskTracker <noreply@tasktracker.local>" : _options.Value.From;
+            var from = string.IsNullOrWhiteSpace(_options.Value.From) ? "Sprintle <noreply@sprintle.local>" : _options.Value.From;
 
             MailAddress fromAddress;
             try
@@ -49,7 +49,7 @@ namespace Notifications.Infrastructure.Emails
             }
             catch (FormatException)
             {
-                fromAddress = new MailAddress("noreply@tasktracker.local", "TaskTracker");
+                fromAddress = new MailAddress("noreply@sprintle.local", "Sprintle");
             }
 
             using var message = new MailMessage

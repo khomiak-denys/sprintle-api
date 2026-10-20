@@ -16,7 +16,7 @@ namespace Notifications.Infrastructure.Tests.Emails
             {
                 Host = "localhost",
                 Port = 1025,
-                From = "TaskTracker <noreply@tasktracker.local>"
+                From = "Sprintle <noreply@sprintle.local>"
             };
 
             var optionsWrapper = Microsoft.Extensions.Options.Options.Create(_options);
@@ -68,7 +68,7 @@ namespace Notifications.Infrastructure.Tests.Emails
             // Assert
             options.Host.Should().Be("localhost");
             options.Port.Should().Be(1025);
-            options.From.Should().Be("TaskTracker <noreply@tasktracker.local>");
+            options.From.Should().Be("Sprintle <noreply@sprintle.local>");
             SmtpOptions.SectionName.Should().Be("Smtp");
         }
 

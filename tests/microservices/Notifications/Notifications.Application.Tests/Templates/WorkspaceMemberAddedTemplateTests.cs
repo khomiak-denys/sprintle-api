@@ -24,7 +24,7 @@ namespace Notifications.Application.Tests.Templates
             html.Should().Contain("Mobile Platform");
             html.Should().Contain("Alice Manager");
             html.Should().Contain("Bob Developer");
-            html.Should().Contain("TaskTracker");
+            html.Should().Contain("Sprintle");
             html.Should().Contain("background-color: #0078d4");
         }
 
@@ -80,7 +80,7 @@ namespace Notifications.Application.Tests.Templates
             var subject = WorkspaceMemberAddedTemplate.GetSubject("Frontend Core");
 
             // Assert
-            subject.Should().Be("You've been added to the 'Frontend Core' workspace - TaskTracker");
+            subject.Should().Be("You've been added to the 'Frontend Core' workspace - Sprintle");
         }
 
         [Theory]

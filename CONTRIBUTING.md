@@ -1,6 +1,6 @@
-# Contributing to TaskTracker
+# Contributing to Sprintle
 
-First off, thank you for considering contributing to TaskTracker! 
+First off, thank you for considering contributing to Sprintle! 
 
 ## Getting Started
 

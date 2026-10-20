@@ -11,7 +11,7 @@ namespace EmailTemplates
         /// <summary>
         /// Default email subject for task comment notifications.
         /// </summary>
-        public const string DefaultSubject = "New comment on task - TaskTracker";
+        public const string DefaultSubject = "New comment on task - Sprintle";
 
         /// <summary>
         /// Generates a customized subject line including the task title and optional workspace name.
@@ -27,8 +27,8 @@ namespace EmailTemplates
             }
 
             return string.IsNullOrWhiteSpace(workspaceName)
-                ? $"New comment on '{taskTitle}' - TaskTracker"
-                : $"New comment on '{taskTitle}' in '{workspaceName}' - TaskTracker";
+                ? $"New comment on '{taskTitle}' - Sprintle"
+                : $"New comment on '{taskTitle}' in '{workspaceName}' - Sprintle";
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace EmailTemplates
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>New Comment - TaskTracker</title>
+                    <title>New Comment - Sprintle</title>
                     <style>
                         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
                         body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
@@ -94,7 +94,7 @@ namespace EmailTemplates
                                                         <span style="color: #ffffff; font-weight: 700; font-size: 20px; line-height: 36px; display: block;">T</span>
                                                     </td>
                                                     <td style="padding-left: 12px; font-size: 20px; font-weight: 700; color: #0078d4; letter-spacing: -0.5px;">
-                                                        TaskTracker
+                                                        Sprintle
                                                     </td>
                                                 </tr>
                                             </table>
@@ -155,8 +155,8 @@ namespace EmailTemplates
                                     <!-- Footer -->
                                     <tr>
                                         <td style="font-size: 12px; line-height: 1.5; color: #a19f9d; text-align: center;">
-                                            You are receiving this email because you are the requester or assignee on this task in TaskTracker.<br>
-                                            &copy; {{DateTime.UtcNow.Year}} TaskTracker. All rights reserved.
+                                            You are receiving this email because you are the requester or assignee on this task in Sprintle.<br>
+                                            &copy; {{DateTime.UtcNow.Year}} Sprintle. All rights reserved.
                                         </td>
                                     </tr>
                                 </table>

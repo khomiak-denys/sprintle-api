@@ -39,7 +39,7 @@ namespace Notifications.Application.Tests.Templates
             html.Should().Contain("Bob Developer");
             html.Should().Contain("Critical");
             html.Should().Contain("Nov 20, 2026");
-            html.Should().Contain("TaskTracker");
+            html.Should().Contain("Sprintle");
             html.Should().Contain("background-color: #0078d4");
         }
 
@@ -129,7 +129,7 @@ namespace Notifications.Application.Tests.Templates
             var subject = TaskAssignedTemplate.GetSubject("Implement OAuth", "Mobile Platform");
 
             // Assert
-            subject.Should().Be("You've been assigned to 'Implement OAuth' in 'Mobile Platform' - TaskTracker");
+            subject.Should().Be("You've been assigned to 'Implement OAuth' in 'Mobile Platform' - Sprintle");
         }
 
         [Fact]
@@ -139,7 +139,7 @@ namespace Notifications.Application.Tests.Templates
             var subject = TaskAssignedTemplate.GetSubject("Implement OAuth", null);
 
             // Assert
-            subject.Should().Be("You've been assigned to 'Implement OAuth' - TaskTracker");
+            subject.Should().Be("You've been assigned to 'Implement OAuth' - Sprintle");
         }
 
         [Theory]
