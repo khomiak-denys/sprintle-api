@@ -22,7 +22,7 @@ namespace Notifications.Infrastructure.Tests.Emails
             _options = new ResendOptions
             {
                 ApiToken = "re_test_key",
-                From = "TaskTracker <noreply@tasktracker.com>"
+                From = "Sprintle <noreply@sprintle.com>"
             };
 
             var optionsWrapper = Microsoft.Extensions.Options.Options.Create(_options);
@@ -34,7 +34,7 @@ namespace Notifications.Infrastructure.Tests.Emails
         {
             // Arrange
             var recipient = "user@example.com";
-            var subject = "Welcome to TaskTracker";
+            var subject = "Welcome to Sprintle";
             var body = "<p>Welcome!</p>";
             var expectedEmailId = Guid.NewGuid();
 
@@ -50,7 +50,7 @@ namespace Notifications.Infrastructure.Tests.Emails
             // Assert
             capturedMessage.Should().NotBeNull();
             capturedMessage!.From.Should().NotBeNull();
-            capturedMessage!.From!.Email.Should().Be("noreply@tasktracker.com");
+            capturedMessage!.From!.Email.Should().Be("noreply@sprintle.com");
             capturedMessage.Subject.Should().Be(subject);
             capturedMessage.HtmlBody.Should().Be(body);
             capturedMessage.To.Should().Contain(addr => addr.Email == recipient);

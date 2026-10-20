@@ -23,6 +23,6 @@ namespace Notifications.Infrastructure.Emails
         /// <summary>
         /// Gets or sets the default sender email address.
         /// </summary>
-        public string From { get; set; } = "TaskTracker <noreply@tasktracker.local>";
+        public string From { get; set; } = "Sprintle <noreply@sprintle.local>";
     }
 }

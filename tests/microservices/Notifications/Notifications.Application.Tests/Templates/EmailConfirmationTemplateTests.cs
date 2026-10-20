@@ -21,7 +21,7 @@ namespace Notifications.Application.Tests.Templates
             html.Should().Contain("Confirm your email address");
             html.Should().Contain("Confirm Email");
             html.Should().Contain("http://localhost:4200/confirm-email?userId=123&amp;token=abc");
-            html.Should().Contain("TaskTracker");
+            html.Should().Contain("Sprintle");
             html.Should().Contain("background-color: #0078d4");
         }
 

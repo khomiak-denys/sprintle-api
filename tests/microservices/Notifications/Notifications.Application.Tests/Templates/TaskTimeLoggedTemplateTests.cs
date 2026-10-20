@@ -146,7 +146,7 @@ namespace Notifications.Application.Tests.Templates
             var subject = TaskTimeLoggedTemplate.GetSubject("Implement Auth", 90, "Platform");
 
             // Assert
-            subject.Should().Be("Time logged on 'Implement Auth' (1h 30m) in 'Platform' - TaskTracker");
+            subject.Should().Be("Time logged on 'Implement Auth' (1h 30m) in 'Platform' - Sprintle");
         }
 
         [Fact]
@@ -156,7 +156,7 @@ namespace Notifications.Application.Tests.Templates
             var subject = TaskTimeLoggedTemplate.GetSubject("Implement Auth", 60, null);
 
             // Assert
-            subject.Should().Be("Time logged on 'Implement Auth' (1h) - TaskTracker");
+            subject.Should().Be("Time logged on 'Implement Auth' (1h) - Sprintle");
         }
 
         [Theory]

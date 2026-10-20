@@ -16,7 +16,7 @@ namespace Notifications.Infrastructure.Emails
         public string ApiToken { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the default sender email address (e.g. "TaskTracker &lt;onboarding@resend.dev&gt;").
+        /// Gets or sets the default sender email address (e.g. "Sprintle &lt;onboarding@resend.dev&gt;").
         /// </summary>
         public string From { get; set; } = string.Empty;
     }

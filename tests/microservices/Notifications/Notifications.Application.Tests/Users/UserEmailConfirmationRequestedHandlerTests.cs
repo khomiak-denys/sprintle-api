@@ -74,7 +74,7 @@ namespace Notifications.Application.Tests.Users
         public async Task HandleAsync_Should_UseCustomPageAddress_When_ProvidedInOptions()
         {
             // Arrange
-            _frontendOptions.EmailConfirmationPageAddress = "https://app.tasktracker.com/auth/verify";
+            _frontendOptions.EmailConfirmationPageAddress = "https://app.sprintle.com/auth/verify";
             var userId = Guid.NewGuid();
             var email = "custom@example.com";
             var token = "custom-token-123";
@@ -93,14 +93,14 @@ namespace Notifications.Application.Tests.Users
 
             // Assert
             capturedBody.Should().NotBeNull();
-            capturedBody.Should().Contain("https://app.tasktracker.com/auth/verify?userId=");
+            capturedBody.Should().Contain("https://app.sprintle.com/auth/verify?userId=");
         }
 
         [Fact]
         public async Task HandleAsync_Should_HandleExistingQueryParameters_When_BaseUrlContainsQuestionMark()
         {
             // Arrange
-            _frontendOptions.EmailConfirmationPageAddress = "https://app.tasktracker.com/auth/verify?source=email";
+            _frontendOptions.EmailConfirmationPageAddress = "https://app.sprintle.com/auth/verify?source=email";
             var userId = Guid.NewGuid();
             var email = "query@example.com";
             var token = "query-token";
@@ -119,7 +119,7 @@ namespace Notifications.Application.Tests.Users
 
             // Assert
             capturedBody.Should().NotBeNull();
-            capturedBody.Should().Contain("https://app.tasktracker.com/auth/verify?source=email&amp;userId=");
+            capturedBody.Should().Contain("https://app.sprintle.com/auth/verify?source=email&amp;userId=");
         }
 
         [Fact]

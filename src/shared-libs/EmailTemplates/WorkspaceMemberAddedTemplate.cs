@@ -10,7 +10,7 @@ namespace EmailTemplates
         /// <summary>
         /// Default email subject for workspace addition notifications.
         /// </summary>
-        public const string DefaultSubject = "You've been added to a workspace - TaskTracker";
+        public const string DefaultSubject = "You've been added to a workspace - Sprintle";
 
         /// <summary>
         /// Generates a customized subject line including the workspace name.
@@ -21,7 +21,7 @@ namespace EmailTemplates
         {
             return string.IsNullOrWhiteSpace(workspaceName)
                 ? DefaultSubject
-                : $"You've been added to the '{workspaceName}' workspace - TaskTracker";
+                : $"You've been added to the '{workspaceName}' workspace - Sprintle";
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace EmailTemplates
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Added to Workspace - TaskTracker</title>
+                    <title>Added to Workspace - Sprintle</title>
                     <style>
                         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
                         body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
@@ -79,7 +79,7 @@ namespace EmailTemplates
                                                         <span style="color: #ffffff; font-size: 20px; font-weight: 700; line-height: 36px; display: inline-block;">✓</span>
                                                     </td>
                                                     <td style="padding-left: 12px; vertical-align: middle;">
-                                                        <span style="font-size: 20px; font-weight: 700; color: #0078d4; letter-spacing: -0.3px;">TaskTracker</span>
+                                                        <span style="font-size: 20px; font-weight: 700; color: #0078d4; letter-spacing: -0.3px;">Sprintle</span>
                                                     </td>
                                                 </tr>
                                             </table>
@@ -97,7 +97,7 @@ namespace EmailTemplates
                                     <tr>
                                         <td align="left" style="padding-bottom: 20px; font-size: 15px; line-height: 1.6; color: #605e5c;">
                                             <p style="margin: 0 0 14px 0;">{{greetingText}}</p>
-                                            <p style="margin: 0;"><strong>{{encodedManagerName}}</strong> has added you as a member to the <strong>{{encodedWorkspaceName}}</strong> workspace in TaskTracker.</p>
+                                            <p style="margin: 0;"><strong>{{encodedManagerName}}</strong> has added you as a member to the <strong>{{encodedWorkspaceName}}</strong> workspace in Sprintle.</p>
                                         </td>
                                     </tr>
 
@@ -118,8 +118,8 @@ namespace EmailTemplates
                                     <!-- Security Notice & Footer -->
                                     <tr>
                                         <td align="left" style="font-size: 12px; line-height: 1.5; color: #a19f9d; border-top: 1px solid #edebe9; padding-top: 24px;">
-                                            <p style="margin: 0 0 8px 0;">You received this email because you are a registered user of TaskTracker and were assigned to a team workspace.</p>
-                                            <p style="margin: 0;">&copy; 2026 TaskTracker. All rights reserved.</p>
+                                            <p style="margin: 0 0 8px 0;">You received this email because you are a registered user of Sprintle and were assigned to a team workspace.</p>
+                                            <p style="margin: 0;">&copy; 2026 Sprintle. All rights reserved.</p>
                                         </td>
                                     </tr>
                                 </table>

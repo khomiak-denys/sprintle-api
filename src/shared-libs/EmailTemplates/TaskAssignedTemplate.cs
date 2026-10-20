@@ -12,7 +12,7 @@ namespace EmailTemplates
         /// <summary>
         /// Default email subject for task assignment notifications.
         /// </summary>
-        public const string DefaultSubject = "You've been assigned to a task - TaskTracker";
+        public const string DefaultSubject = "You've been assigned to a task - Sprintle";
 
         /// <summary>
         /// Generates a customized subject line including the task title and optional workspace name.
@@ -28,8 +28,8 @@ namespace EmailTemplates
             }
 
             return string.IsNullOrWhiteSpace(workspaceName)
-                ? $"You've been assigned to '{taskTitle}' - TaskTracker"
-                : $"You've been assigned to '{taskTitle}' in '{workspaceName}' - TaskTracker";
+                ? $"You've been assigned to '{taskTitle}' - Sprintle"
+                : $"You've been assigned to '{taskTitle}' in '{workspaceName}' - Sprintle";
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace EmailTemplates
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Task Assigned - TaskTracker</title>
+                    <title>Task Assigned - Sprintle</title>
                     <style>
                         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
                         body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
@@ -113,7 +113,7 @@ namespace EmailTemplates
                                                         <span style="color: #ffffff; font-size: 20px; font-weight: 700; line-height: 36px; display: inline-block;">✓</span>
                                                     </td>
                                                     <td style="padding-left: 12px; vertical-align: middle;">
-                                                        <span style="font-size: 20px; font-weight: 700; color: #0078d4; letter-spacing: -0.3px;">TaskTracker</span>
+                                                        <span style="font-size: 20px; font-weight: 700; color: #0078d4; letter-spacing: -0.3px;">Sprintle</span>
                                                     </td>
                                                 </tr>
                                             </table>
@@ -181,8 +181,8 @@ namespace EmailTemplates
                                     <!-- Security Notice & Footer -->
                                     <tr>
                                         <td align="left" style="font-size: 12px; line-height: 1.5; color: #a19f9d; border-top: 1px solid #edebe9; padding-top: 24px;">
-                                            <p style="margin: 0 0 8px 0;">You received this email because you are a registered user of TaskTracker and were assigned to a task.</p>
-                                            <p style="margin: 0;">&copy; 2026 TaskTracker. All rights reserved.</p>
+                                            <p style="margin: 0 0 8px 0;">You received this email because you are a registered user of Sprintle and were assigned to a task.</p>
+                                            <p style="margin: 0;">&copy; 2026 Sprintle. All rights reserved.</p>
                                         </td>
                                     </tr>
                                 </table>
