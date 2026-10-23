@@ -254,45 +254,5 @@ namespace Workspaces.Domain.Tests.Tasks
             // Assert
             act.Should().Throw<ArgumentException>();
         }
-
-        [Fact]
-        public void RestoreNumber_Should_SetNumber_When_CurrentNumberIsEmpty()
-        {
-            // Arrange - simulate legacy rehydrated task with Number = ""
-            var task = TaskItem.Rehydrate(Guid.NewGuid(), new[]
-            {
-                new TaskCreatedDomainEvent(
-                    Guid.NewGuid(),
-                    Guid.NewGuid(),
-                    "Legacy Task",
-                    null,
-                    Priority.Low,
-                    null,
-                    null,
-                    Guid.NewGuid(),
-                    TaskStatus.Todo,
-                    "")
-            });
-            task.Number.Should().BeEmpty();
-
-            // Act
-            task.RestoreNumber("DMS-15");
-
-            // Assert
-            task.Number.Should().Be("DMS-15");
-        }
-
-        [Fact]
-        public void RestoreNumber_Should_NotChangeNumber_When_AlreadySet()
-        {
-            // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-10", "Task", null, Priority.Low, null, null, Guid.NewGuid());
-
-            // Act
-            task.RestoreNumber("DMS-99");
-
-            // Assert
-            task.Number.Should().Be("DMS-10");
-        }
     }
 }

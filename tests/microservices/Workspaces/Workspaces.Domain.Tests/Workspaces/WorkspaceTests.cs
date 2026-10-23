@@ -127,28 +127,5 @@ namespace Workspaces.Domain.Tests.Workspaces
             result.IsFailure.Should().BeTrue();
             result.Error.Should().BeOfType<NotFoundError>();
         }
-
-        [Theory]
-        [InlineData("DMS Team", "DMS")]
-        [InlineData("Sprintle", "SPR")]
-        [InlineData("AB", "AB")]
-        [InlineData("X", "X")]
-        [InlineData("  spaced  ", "SPA")]
-        [InlineData("123 Team", "123")]
-        [InlineData("!@#$%", "TSK")]
-        [InlineData("", "TSK")]
-        [InlineData(null, "TSK")]
-        public void GenerateTaskPrefix_Should_ReturnExpectedPrefix(string? name, string expectedPrefix)
-        {
-            Workspace.GenerateTaskPrefix(name!).Should().Be(expectedPrefix);
-        }
-
-        [Fact]
-        public void FormatTaskNumber_Should_CombinePrefixAndSequenceNumber()
-        {
-            Workspace.FormatTaskNumber("DMS Team", 730).Should().Be("DMS-730");
-            Workspace.FormatTaskNumber("Sprintle", 1).Should().Be("SPR-1");
-            Workspace.FormatTaskNumber("!@#", 42).Should().Be("TSK-42");
-        }
     }
 }

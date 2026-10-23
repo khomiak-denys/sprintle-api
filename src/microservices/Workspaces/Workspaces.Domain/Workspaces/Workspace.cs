@@ -25,33 +25,6 @@ namespace Workspaces.Domain.Workspaces
         /// </summary>
         public int LastTaskNumber { get; private set; }
 
-        /// <summary>
-        /// Extracts the uppercase 3-letter prefix from a workspace name (e.g. "DMS Team" -> "DMS", "Sprintle" -> "SPR").
-        /// Falls back to "TSK" if the name contains no alphanumeric characters.
-        /// </summary>
-        /// <param name="name">The workspace name.</param>
-        /// <returns>A 1 to 3 character uppercase prefix.</returns>
-        public static string GenerateTaskPrefix(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return "TSK";
-            }
-
-            var letters = new string(name.Where(char.IsLetterOrDigit).Take(3).ToArray()).ToUpperInvariant();
-            return letters.Length > 0 ? letters : "TSK";
-        }
-
-        /// <summary>
-        /// Formats a full task number combining the workspace prefix and sequence counter, e.g. <c>DMS-730</c>.
-        /// </summary>
-        /// <param name="workspaceName">The workspace name.</param>
-        /// <param name="sequenceNumber">The positive sequence number.</param>
-        /// <returns>The formatted task number string.</returns>
-        public static string FormatTaskNumber(string workspaceName, int sequenceNumber)
-        {
-            return $"{GenerateTaskPrefix(workspaceName)}-{sequenceNumber}";
-        }
 
         /// <summary>Gets the workspace members (join entities).</summary>
         public ICollection<WorkspaceMember> Members { get; private set; } = new List<WorkspaceMember>();

@@ -119,19 +119,6 @@ namespace Workspaces.Domain.Tasks
             return task;
         }
 
-        /// <summary>
-        /// Restores the task number on an aggregate rehydrated from a legacy event stream whose
-        /// <see cref="TaskCreatedDomainEvent"/> was persisted before task numbering existed.
-        /// Has no effect if the number is already set.
-        /// </summary>
-        /// <param name="number">The persisted task number.</param>
-        public void RestoreNumber(string number)
-        {
-            if (string.IsNullOrWhiteSpace(Number) && !string.IsNullOrWhiteSpace(number))
-            {
-                Number = number;
-            }
-        }
 
         /// <summary>
         /// Rehydrates a <see cref="TaskItem"/> aggregate root from an ordered stream of historical domain events.

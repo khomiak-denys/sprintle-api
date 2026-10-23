@@ -49,8 +49,6 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
 
             if (stateTask is not null)
             {
-                // Legacy streams created before task numbering have Number = 0 in their creation event.
-                task.RestoreNumber(stateTask.Number);
                 foreach (var tag in stateTask.TaskTags)
                 {
                     task.TaskTags.Add(tag);
