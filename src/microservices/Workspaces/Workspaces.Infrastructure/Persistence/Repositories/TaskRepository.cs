@@ -49,6 +49,8 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
 
             if (stateTask is not null)
             {
+                // Legacy streams created before task numbering have Number = 0 in their creation event.
+                task.RestoreNumber(stateTask.Number);
                 foreach (var tag in stateTask.TaskTags)
                 {
                     task.TaskTags.Add(tag);
@@ -88,10 +90,7 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                var trimmed = search.Trim();
-                query = query.Where(t =>
-                    EF.Functions.ILike(t.Title, $"%{trimmed}%") ||
-                    (t.Description != null && EF.Functions.ILike(t.Description, $"%{trimmed}%")));
+                query = ApplySearch(query, search);
             }
 
             if (status.HasValue)
@@ -170,10 +169,7 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                var trimmed = search.Trim();
-                query = query.Where(t =>
-                    EF.Functions.ILike(t.Title, $"%{trimmed}%") ||
-                    (t.Description != null && EF.Functions.ILike(t.Description, $"%{trimmed}%")));
+                query = ApplySearch(query, search);
             }
 
             if (status.HasValue)
@@ -319,6 +315,20 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
                 .ToDictionaryAsync(x => x.TaskId, x => x.Count, cancellationToken);
 
             return counts;
+        }
+
+        /// <summary>
+        /// Applies the free-text search filter: matches title, description, or task number (e.g. <c>DMS-730</c>, <c>730</c>, or <c>#DMS-730</c>).
+        /// </summary>
+        private static IQueryable<TaskItem> ApplySearch(IQueryable<TaskItem> query, string search)
+        {
+            var trimmed = search.Trim();
+            var cleanTerm = trimmed.TrimStart('#');
+
+            return query.Where(t =>
+                EF.Functions.ILike(t.Number, $"%{cleanTerm}%") ||
+                EF.Functions.ILike(t.Title, $"%{trimmed}%") ||
+                (t.Description != null && EF.Functions.ILike(t.Description, $"%{trimmed}%")));
         }
     }
 }

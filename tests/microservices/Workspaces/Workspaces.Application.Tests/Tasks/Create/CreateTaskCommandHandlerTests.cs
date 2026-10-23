@@ -132,18 +132,49 @@ namespace Workspaces.Application.Tests.Tasks.Create
             var createdTask = _taskRepository.AddedTasks.Single(t => t.Id == result.Value);
             createdTask.Status.Should().Be(TaskStatus.InProgress);
             createdTask.AssigneeId.Should().Be(assigneeId);
+            createdTask.Number.Should().Be("DMS-1");
             _uow.SaveCount.Should().Be(1);
 
             _eventPublisher.PublishedEvents.Should().ContainSingle(e => e is TaskAssigned);
             var publishedEvent = _eventPublisher.PublishedEvents.OfType<TaskAssigned>().Single();
             publishedEvent.TaskId.Should().Be(result.Value);
             publishedEvent.TaskTitle.Should().Be("Valid Task");
+            publishedEvent.TaskNumber.Should().Be("DMS-1");
             publishedEvent.AssigneeUserId.Should().Be(assigneeId);
             publishedEvent.AssigneeEmail.Should().Be("assignee@example.com");
             publishedEvent.AssigneeName.Should().Be("Assignee Full");
             publishedEvent.AssignedByUserId.Should().Be(creatorId);
             publishedEvent.AssignedByName.Should().Be("Creator Full");
             publishedEvent.WorkspaceName.Should().Be("Main Team");
+        }
+
+        [Fact]
+        public async Task Handle_Should_ReturnNotFound_When_WorkspaceNotFoundForTaskNumberReservation()
+        {
+            // Arrange
+            var workspaceId = Guid.NewGuid();
+            var creatorId = Guid.NewGuid();
+            _workspaceRepository.Members.Add((workspaceId, creatorId));
+            _workspaceRepository.ReturnNullTaskNumber = true;
+
+            var command = new CreateTaskCommand(
+                workspaceId,
+                creatorId,
+                "Title",
+                "Description",
+                Priority.Medium,
+                null,
+                null,
+                Enumerable.Empty<string>(),
+                false);
+
+            // Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            result.IsFailure.Should().BeTrue();
+            result.Error.Should().BeOfType<NotFoundError>();
+            _uow.SaveCount.Should().Be(0);
         }
 
         [Fact]
@@ -207,6 +238,12 @@ namespace Workspaces.Application.Tests.Tasks.Create
 
             public Task<bool> IsMemberAsync(Guid workspaceId, Guid userId, CancellationToken cancellationToken) =>
                 Task.FromResult(Members.Contains((workspaceId, userId)));
+
+            public int NextTaskNumber { get; set; } = 1;
+            public bool ReturnNullTaskNumber { get; set; }
+
+            public Task<string?> ReserveNextTaskNumberAsync(Guid workspaceId, CancellationToken cancellationToken) =>
+                Task.FromResult(ReturnNullTaskNumber ? null : $"DMS-{NextTaskNumber++}");
         }
 
         private sealed class FakeTaskRepository : ITaskRepository

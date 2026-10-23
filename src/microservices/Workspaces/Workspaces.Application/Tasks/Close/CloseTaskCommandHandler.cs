@@ -86,7 +86,8 @@ namespace Workspaces.Application.Tasks.Close
                     creatorName,
                     task.AssigneeId,
                     assigneeEmail,
-                    assigneeName),
+                    assigneeName,
+                    TaskNumber: task.Number),
                 cancellationToken);
 
             return Result.Success();

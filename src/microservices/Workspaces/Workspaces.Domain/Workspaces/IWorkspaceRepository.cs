@@ -61,5 +61,16 @@ namespace Workspaces.Domain.Workspaces
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns><c>true</c> if the user is a member or owner of the workspace; otherwise, <c>false</c>.</returns>
         Task<bool> IsMemberAsync(Guid workspaceId, Guid userId, CancellationToken cancellationToken) => Task.FromResult(false);
+
+        /// <summary>
+        /// Atomically increments the workspace task counter and returns the newly reserved task number.
+        /// The increment is executed immediately at the database level (not deferred to <c>SaveChanges</c>),
+        /// so concurrent callers always receive distinct numbers. A reserved number is not released if the
+        /// subsequent task insert fails, therefore gaps in the sequence are possible.
+        /// </summary>
+        /// <param name="workspaceId">The workspace identifier.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The reserved task number (e.g. <c>DMS-730</c>), or <c>null</c> if the workspace does not exist.</returns>
+        Task<string?> ReserveNextTaskNumberAsync(Guid workspaceId, CancellationToken cancellationToken) => Task.FromResult<string?>(null);
     }
 }

@@ -47,7 +47,7 @@ namespace Workspaces.Application.Tests.Tasks.Assign
         {
             // Arrange
             var creatorId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
 
             var nonExistentUserId = Guid.NewGuid();
@@ -68,7 +68,7 @@ namespace Workspaces.Application.Tests.Tasks.Assign
             // Arrange
             var creatorId = Guid.NewGuid();
             var nonMemberUserId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
 
             _usersApiClient.Users[nonMemberUserId] = new UserResult(nonMemberUserId, "user@example.com", "user", "User Name");
@@ -92,7 +92,7 @@ namespace Workspaces.Application.Tests.Tasks.Assign
             var creatorId = Guid.NewGuid();
             var memberId = Guid.NewGuid();
             var workspace = Workspace.Create("Backend Workspace", creatorId, null);
-            var task = TaskItem.Create(workspace.Id, "Task", "Task Desc", Priority.High, null, null, creatorId);
+            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task", "Task Desc", Priority.High, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
 
             _workspaceRepository.Workspaces[workspace.Id] = workspace;
@@ -133,7 +133,7 @@ namespace Workspaces.Application.Tests.Tasks.Assign
             var creatorId = Guid.NewGuid();
             var memberId = Guid.NewGuid();
             var workspaceId = Guid.NewGuid();
-            var task = TaskItem.Create(workspaceId, "Simple Task", null, Priority.Low, null, null, creatorId);
+            var task = TaskItem.Create(workspaceId, "DMS-1", "Simple Task", null, Priority.Low, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
 
             _workspaceRepository.Members.Add((workspaceId, memberId));

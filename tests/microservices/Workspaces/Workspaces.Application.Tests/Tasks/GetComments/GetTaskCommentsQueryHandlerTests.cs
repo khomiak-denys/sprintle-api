@@ -44,7 +44,7 @@ namespace Workspaces.Application.Tests.Tasks.GetComments
             var creatorId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
             var otherUserId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, assigneeId, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, assigneeId, creatorId);
             _taskRepository.TaskToReturn = task;
 
             var query = new GetTaskCommentsQuery(task.Id, otherUserId, false, 1, 20);
@@ -62,7 +62,7 @@ namespace Workspaces.Application.Tests.Tasks.GetComments
         {
             // Arrange
             var creatorId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
             _taskRepository.CommentsToReturn = PaginationResult<TaskComment>.Create(Array.Empty<TaskComment>(), 1, 20, 0);
             _workspaceRepository.Members.Add((task.WorkspaceId, creatorId));
@@ -84,7 +84,7 @@ namespace Workspaces.Application.Tests.Tasks.GetComments
             // Arrange
             var creatorId = Guid.NewGuid();
             var authorId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
             _workspaceRepository.Members.Add((task.WorkspaceId, creatorId));
 
@@ -116,7 +116,7 @@ namespace Workspaces.Application.Tests.Tasks.GetComments
             var creatorId = Guid.NewGuid();
             var memberId = Guid.NewGuid();
             var authorId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
             _workspaceRepository.Members.Add((task.WorkspaceId, memberId));
 
@@ -140,7 +140,7 @@ namespace Workspaces.Application.Tests.Tasks.GetComments
             // Arrange
             var creatorId = Guid.NewGuid();
             var adminId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
             _taskRepository.CommentsToReturn = PaginationResult<TaskComment>.Create(Array.Empty<TaskComment>(), 1, 20, 0);
 

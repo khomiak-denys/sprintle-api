@@ -75,7 +75,8 @@ namespace Workspaces.Application.Tasks.LogTime
                     authorName,
                     task.CreatedById,
                     creatorEmail,
-                    creatorName),
+                    creatorName,
+                    TaskNumber: task.Number),
                 cancellationToken);
 
             return Result.Success();

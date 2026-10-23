@@ -20,7 +20,7 @@ namespace Workspaces.Domain.Tests.Tasks
             var creatorId = Guid.NewGuid();
 
             // Act
-            var task = TaskItem.Create(workspaceId, "Test Title", "Test Desc", Priority.High, null, null, creatorId);
+            var task = TaskItem.Create(workspaceId, "DMS-1", "Test Title", "Test Desc", Priority.High, null, null, creatorId);
 
             // Assert
             task.Status.Should().Be(TaskStatus.Todo);
@@ -41,7 +41,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void Assign_Should_EmitTaskAssignedDomainEvent_When_Valid()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Title", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Title", null, Priority.Medium, null, null, Guid.NewGuid());
             task.ClearUncommittedEvents();
             var assigneeId = Guid.NewGuid();
 
@@ -65,7 +65,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void SubmitForReview_Should_EmitTaskSubmittedForReviewDomainEvent_When_Valid()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Title", null, Priority.Medium, null, Guid.NewGuid(), Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Title", null, Priority.Medium, null, Guid.NewGuid(), Guid.NewGuid());
             task.ClearUncommittedEvents();
 
             // Act
@@ -85,7 +85,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void Approve_Should_EmitTaskApprovedDomainEvent_When_Valid()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Title", null, Priority.Medium, null, Guid.NewGuid(), Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Title", null, Priority.Medium, null, Guid.NewGuid(), Guid.NewGuid());
             task.SubmitForReview();
             task.ClearUncommittedEvents();
 
@@ -106,7 +106,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void Close_Should_EmitTaskClosedDomainEvent_When_Valid()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Title", null, Priority.Medium, null, Guid.NewGuid(), Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Title", null, Priority.Medium, null, Guid.NewGuid(), Guid.NewGuid());
             task.SubmitForReview();
             task.Approve();
             task.ClearUncommittedEvents();
@@ -128,7 +128,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void Cancel_Should_EmitTaskCancelledDomainEvent_When_Valid()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Title", null, Priority.Medium, null, Guid.NewGuid(), Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Title", null, Priority.Medium, null, Guid.NewGuid(), Guid.NewGuid());
             task.ClearUncommittedEvents();
 
             // Act
@@ -207,7 +207,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void ClearUncommittedEvents_Should_EmptyEventsList_When_Called()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Title", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Title", null, Priority.Medium, null, null, Guid.NewGuid());
             task.UncommittedEvents.Should().NotBeEmpty();
 
             // Act

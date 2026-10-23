@@ -46,7 +46,7 @@ namespace Notifications.Application.Tasks
                 return;
             }
 
-            var subject = TaskCommentAddedTemplate.GetSubject(@event.TaskTitle, @event.WorkspaceName);
+            var subject = TaskCommentAddedTemplate.GetSubject(TaskDisplay.FormatTitle(@event.TaskNumber, @event.TaskTitle), @event.WorkspaceName);
 
             foreach (var (userId, email, name) in recipients)
             {
@@ -62,7 +62,7 @@ namespace Notifications.Application.Tasks
                 }
 
                 var htmlBody = TaskCommentAddedTemplate.Render(
-                    @event.TaskTitle,
+                    TaskDisplay.FormatTitle(@event.TaskNumber, @event.TaskTitle),
                     @event.WorkspaceName,
                     @event.CommentContent,
                     @event.CommentAuthorName,

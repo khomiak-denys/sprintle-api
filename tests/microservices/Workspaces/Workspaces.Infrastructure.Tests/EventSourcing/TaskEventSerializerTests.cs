@@ -28,7 +28,8 @@ namespace Workspaces.Infrastructure.Tests.EventSourcing
                 DateTime.UtcNow.AddDays(3),
                 assigneeId,
                 creatorId,
-                TaskStatus.InProgress);
+                TaskStatus.InProgress,
+                "DMS-42");
 
             // Act
             var (eventType, payload) = TaskEventSerializer.Serialize(original);
@@ -39,12 +40,43 @@ namespace Workspaces.Infrastructure.Tests.EventSourcing
             deserialized.Should().NotBeNull();
             deserialized!.TaskId.Should().Be(taskId);
             deserialized.WorkspaceId.Should().Be(workspaceId);
+            deserialized.Number.Should().Be("DMS-42");
             deserialized.Title.Should().Be("Serialize Test");
             deserialized.Description.Should().Be("Description");
             deserialized.Priority.Should().Be(Priority.High);
             deserialized.AssigneeId.Should().Be(assigneeId);
             deserialized.CreatedById.Should().Be(creatorId);
             deserialized.InitialStatus.Should().Be(TaskStatus.InProgress);
+        }
+
+        [Fact]
+        public void Deserialize_Should_DefaultNumberToEmpty_When_LegacyPayloadHasNoNumber()
+        {
+            // Arrange - JSON payload persisted before task numbering was added
+            var taskId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
+            var creatorId = Guid.NewGuid();
+            var legacyJson = $$"""
+            {
+                "TaskId": "{{taskId}}",
+                "WorkspaceId": "{{workspaceId}}",
+                "Title": "Legacy Task",
+                "Description": null,
+                "Priority": 1,
+                "Deadline": null,
+                "AssigneeId": null,
+                "CreatedById": "{{creatorId}}",
+                "InitialStatus": 1
+            }
+            """;
+
+            // Act
+            var deserialized = TaskEventSerializer.Deserialize(nameof(TaskCreatedDomainEvent), legacyJson) as TaskCreatedDomainEvent;
+
+            // Assert
+            deserialized.Should().NotBeNull();
+            deserialized!.Number.Should().BeEmpty();
+            deserialized.Title.Should().Be("Legacy Task");
         }
 
         [Fact]

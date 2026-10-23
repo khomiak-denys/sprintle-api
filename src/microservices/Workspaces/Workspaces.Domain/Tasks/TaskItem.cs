@@ -18,6 +18,12 @@ namespace Workspaces.Domain.Tasks
         /// <summary>Gets the unique identifier of the workspace this task belongs to.</summary>
         public Guid WorkspaceId { get; private set; }
 
+        /// <summary>
+        /// Gets the human-readable identifier of the task, formatted as {WorkspacePrefix}-{Number} (e.g. DMS-730).
+        /// Allocated by the backend at creation time and never changed afterwards.
+        /// </summary>
+        public string Number { get; private set; } = null!;
+
         /// <summary>Gets the title of the task.</summary>
         public string Title { get; private set; } = null!;
 
@@ -76,6 +82,7 @@ namespace Workspaces.Domain.Tasks
         /// Raises a <see cref="TaskCreatedDomainEvent"/>.
         /// </summary>
         /// <param name="workspaceId">The workspace identifier.</param>
+        /// <param name="number">The task identifier (e.g. DMS-730), unique within its workspace.</param>
         /// <param name="title">Non-empty task title.</param>
         /// <param name="description">Optional task description.</param>
         /// <param name="priority">Task priority level.</param>
@@ -83,8 +90,10 @@ namespace Workspaces.Domain.Tasks
         /// <param name="assigneeId">Optional assignee user identifier. When provided, the task transitions to 'InProgress'; otherwise 'Todo'.</param>
         /// <param name="createdById">The creator user identifier.</param>
         /// <returns>A new <see cref="TaskItem"/> instance.</returns>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="number"/> is null or whitespace.</exception>
         public static TaskItem Create(
             Guid workspaceId,
+            string number,
             string title,
             string? description,
             Priority priority,
@@ -92,6 +101,8 @@ namespace Workspaces.Domain.Tasks
             Guid? assigneeId,
             Guid createdById)
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(number);
+
             var task = new TaskItem(Guid.NewGuid());
             var initialStatus = assigneeId.HasValue ? TaskStatus.InProgress : TaskStatus.Todo;
             task.RaiseEvent(new TaskCreatedDomainEvent(
@@ -103,8 +114,23 @@ namespace Workspaces.Domain.Tasks
                 deadline,
                 assigneeId,
                 createdById,
-                initialStatus));
+                initialStatus,
+                number));
             return task;
+        }
+
+        /// <summary>
+        /// Restores the task number on an aggregate rehydrated from a legacy event stream whose
+        /// <see cref="TaskCreatedDomainEvent"/> was persisted before task numbering existed.
+        /// Has no effect if the number is already set.
+        /// </summary>
+        /// <param name="number">The persisted task number.</param>
+        public void RestoreNumber(string number)
+        {
+            if (string.IsNullOrWhiteSpace(Number) && !string.IsNullOrWhiteSpace(number))
+            {
+                Number = number;
+            }
         }
 
         /// <summary>
@@ -323,6 +349,7 @@ namespace Workspaces.Domain.Tasks
             {
                 case TaskCreatedDomainEvent e:
                     WorkspaceId = e.WorkspaceId;
+                    Number = e.Number;
                     Title = e.Title;
                     Description = e.Description;
                     Priority = e.Priority;

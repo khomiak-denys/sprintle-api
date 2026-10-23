@@ -82,6 +82,7 @@ namespace Workspaces.Application.Tasks.GetAll
                 .Select(task => new TaskResult(
                     task.Id,
                     task.WorkspaceId,
+                    task.Number,
                     task.Title,
                     task.Description,
                     task.Status,

@@ -56,10 +56,10 @@ namespace Notifications.Application.Tasks
                 return;
             }
 
-            var subject = TaskTimeLoggedTemplate.GetSubject(@event.TaskTitle, @event.MinutesSpent, @event.WorkspaceName);
+            var subject = TaskTimeLoggedTemplate.GetSubject(TaskDisplay.FormatTitle(@event.TaskNumber, @event.TaskTitle), @event.MinutesSpent, @event.WorkspaceName);
 
             var htmlBody = TaskTimeLoggedTemplate.Render(
-                @event.TaskTitle,
+                TaskDisplay.FormatTitle(@event.TaskNumber, @event.TaskTitle),
                 @event.WorkspaceName,
                 @event.MinutesSpent,
                 @event.Description,

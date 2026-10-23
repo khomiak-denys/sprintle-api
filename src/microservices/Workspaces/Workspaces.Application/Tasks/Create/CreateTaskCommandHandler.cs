@@ -58,8 +58,15 @@ namespace Workspaces.Application.Tasks.Create
                 }
             }
 
+            var number = await _workspaceRepository.ReserveNextTaskNumberAsync(command.WorkspaceId, cancellationToken);
+            if (number is null)
+            {
+                return Result<Guid>.Failure(new NotFoundError($"Workspace '{command.WorkspaceId}' was not found."));
+            }
+
             var task = TaskItem.Create(
                 command.WorkspaceId,
+                number,
                 command.Title,
                 command.Description,
                 command.Priority,
@@ -104,7 +111,8 @@ namespace Workspaces.Application.Tasks.Create
                             command.CreatedById,
                             assignerName,
                             task.Priority.ToString(),
-                            task.Deadline),
+                            task.Deadline,
+                            TaskNumber: task.Number),
                         cancellationToken);
                 }
             }

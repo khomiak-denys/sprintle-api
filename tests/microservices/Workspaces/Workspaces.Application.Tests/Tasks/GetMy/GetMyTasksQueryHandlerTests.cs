@@ -25,7 +25,7 @@ namespace Workspaces.Application.Tests.Tasks.GetMy
         {
             var userId = Guid.NewGuid();
             var workspaceId = Guid.NewGuid();
-            var task = TaskItem.Create(workspaceId, "My Task", "Desc", Priority.Medium, null, userId, userId);
+            var task = TaskItem.Create(workspaceId, "DMS-1", "My Task", "Desc", Priority.Medium, null, userId, userId);
             _repository.TasksToReturn.Add(task);
 
             var query = new GetMyTasksQuery(userId);
@@ -162,7 +162,7 @@ namespace Workspaces.Application.Tests.Tasks.GetMy
         {
             var userId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "Task with Assignee", "Desc", Priority.Medium, null, assigneeId, userId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task with Assignee", "Desc", Priority.Medium, null, assigneeId, userId);
             _repository.TasksToReturn.Add(task);
 
             var fakeUsersClient = new FakeUsersApiClient();

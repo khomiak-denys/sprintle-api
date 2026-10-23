@@ -54,7 +54,7 @@ namespace Workspaces.Application.Tests.Tasks.LogTime
             var creatorId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
             var workspace = Workspace.Create("Dev Workspace", creatorId, null);
-            var task = TaskItem.Create(workspace.Id, "Task", null, Priority.Medium, null, assigneeId, creatorId);
+            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task", null, Priority.Medium, null, assigneeId, creatorId);
             _taskRepository.TaskToReturn = task;
 
             _workspaceRepository.Workspaces[workspace.Id] = workspace;
@@ -92,7 +92,7 @@ namespace Workspaces.Application.Tests.Tasks.LogTime
             // Arrange
             var assigneeId = Guid.NewGuid();
             var otherUserId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, assigneeId, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, assigneeId, Guid.NewGuid());
             _taskRepository.TaskToReturn = task;
 
             var command = new LogTaskTimeCommand(task.Id, otherUserId, 60, "Work by other user", DateOnly.FromDateTime(DateTime.UtcNow));
@@ -112,7 +112,7 @@ namespace Workspaces.Application.Tests.Tasks.LogTime
         {
             // Arrange
             var userId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, userId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, userId);
             _taskRepository.TaskToReturn = task;
 
             var command = new LogTaskTimeCommand(task.Id, userId, 60, "Work on unassigned task", DateOnly.FromDateTime(DateTime.UtcNow));

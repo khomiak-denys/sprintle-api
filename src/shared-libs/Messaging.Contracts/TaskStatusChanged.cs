@@ -19,6 +19,7 @@ namespace Messaging.Contracts
     /// <param name="AssigneeUserId">The optional unique identifier of the assigned user.</param>
     /// <param name="AssigneeEmail">The optional email address of the assigned user.</param>
     /// <param name="AssigneeName">The optional display name or username of the assigned user.</param>
+    /// <param name="TaskNumber">The sequential task number within its workspace. Optional for backward compatibility with messages published before task numbering existed.</param>
     public sealed record TaskStatusChanged(
         Guid TaskId,
         string TaskTitle,
@@ -33,5 +34,6 @@ namespace Messaging.Contracts
         string CreatedByName,
         Guid? AssigneeUserId,
         string? AssigneeEmail,
-        string? AssigneeName);
+        string? AssigneeName,
+        string? TaskNumber = null);
 }
