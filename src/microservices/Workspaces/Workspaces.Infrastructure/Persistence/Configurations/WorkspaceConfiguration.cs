@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Workspaces.Domain.Workspaces;
 
@@ -28,6 +29,13 @@ namespace Workspaces.Infrastructure.Persistence.Configurations
 
             builder.Property(w => w.Description)
                 .HasMaxLength(2000);
+
+            // Incremented only via an atomic SQL UPDATE in WorkspaceRepository.ReserveNextTaskNumberAsync.
+            // Ignored on update so a stale tracked instance can never overwrite the counter.
+            builder.Property(w => w.LastTaskNumber)
+                .IsRequired()
+                .HasDefaultValue(0)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
 
             builder.Property(w => w.CreatedAt)
                 .IsRequired();

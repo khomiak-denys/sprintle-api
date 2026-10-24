@@ -43,7 +43,7 @@ namespace Workspaces.Application.Tests.Tasks.GetStatusHistory
         public async Task Handle_Should_ReturnEmptyHistory_When_TaskHasNoEvents()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
             _taskRepository.Tasks[task.Id] = task;
             var query = new GetTaskStatusHistoryQuery(task.Id);
 
@@ -64,7 +64,7 @@ namespace Workspaces.Application.Tests.Tasks.GetStatusHistory
             var creatorId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
 
-            var task = TaskItem.Create(workspaceId, "Task", null, Priority.High, null, null, creatorId);
+            var task = TaskItem.Create(workspaceId, "DMS-1", "Task", null, Priority.High, null, null, creatorId);
             _taskRepository.Tasks[taskId] = task;
 
             var events = new List<IDomainEvent>

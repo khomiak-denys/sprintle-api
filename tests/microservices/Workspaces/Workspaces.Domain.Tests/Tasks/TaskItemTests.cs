@@ -1,6 +1,7 @@
 using DomainFramework.Errors;
 using FluentAssertions;
 using Workspaces.Domain.Tasks;
+using Workspaces.Domain.Tasks.Events;
 using TaskStatus = Workspaces.Domain.Tasks.TaskStatus;
 using Xunit;
 
@@ -15,7 +16,7 @@ namespace Workspaces.Domain.Tests.Tasks
             var assigneeId = Guid.NewGuid();
 
             // Act
-            var task = TaskItem.Create(Guid.NewGuid(), "Task with Assignee", null, Priority.High, null, assigneeId, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task with Assignee", null, Priority.High, null, assigneeId, Guid.NewGuid());
 
             // Assert
             task.Status.Should().Be(TaskStatus.InProgress);
@@ -27,7 +28,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void Create_Should_SetStatusToTodo_When_AssigneeIdIsNull()
         {
             // Act
-            var task = TaskItem.Create(Guid.NewGuid(), "Unassigned Task", null, Priority.Low, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Unassigned Task", null, Priority.Low, null, null, Guid.NewGuid());
 
             // Assert
             task.Status.Should().Be(TaskStatus.Todo);
@@ -39,7 +40,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void GetAvailableTransitions_Should_ReturnAssignAndCancel_When_StatusIsTodo()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
 
             // Act
             var transitions = task.GetAvailableTransitions();
@@ -52,7 +53,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void Assign_Should_MoveToInProgress_When_StatusIsTodo()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
             var assigneeId = Guid.NewGuid();
 
             // Act
@@ -69,7 +70,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void Assign_Should_Fail_When_StatusIsNotTodo()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
             task.Assign(Guid.NewGuid()); // now InProgress
 
             // Act
@@ -84,7 +85,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void SubmitForReview_Should_TransitionToInReview_When_StatusIsInProgress()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
             task.Assign(Guid.NewGuid());
 
             // Act
@@ -100,7 +101,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void SubmitForReview_Should_Fail_When_StatusIsNotInProgress()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
 
             // Act
             var result = task.SubmitForReview();
@@ -114,7 +115,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void Approve_Should_TransitionToDone_When_StatusIsInReview()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
             task.Assign(Guid.NewGuid());
             task.SubmitForReview();
 
@@ -131,7 +132,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void Approve_Should_Fail_When_StatusIsNotInReview()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
 
             // Act
             var result = task.Approve();
@@ -145,7 +146,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void Close_Should_TransitionToClosed_When_StatusIsDone()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
             task.Assign(Guid.NewGuid());
             task.SubmitForReview();
             task.Approve();
@@ -163,7 +164,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void Close_Should_Fail_When_StatusIsNotDone()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
 
             // Act
             var result = task.Close();
@@ -180,7 +181,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void Cancel_Should_Succeed_When_StatusIsCancellable(TaskStatus initialStatus)
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
             if (initialStatus == TaskStatus.InProgress)
             {
                 task.Assign(Guid.NewGuid());
@@ -204,7 +205,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void Cancel_Should_Fail_When_StatusIsDoneOrClosed()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
             task.Assign(Guid.NewGuid());
             task.SubmitForReview();
             task.Approve();
@@ -221,7 +222,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void ChangePriority_Should_UpdatePriority_When_Called()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "Task", null, Priority.Low, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Low, null, null, Guid.NewGuid());
 
             // Act
             task.ChangePriority(Priority.Critical);
@@ -229,6 +230,29 @@ namespace Workspaces.Domain.Tests.Tasks
             // Assert
             task.Priority.Should().Be(Priority.Critical);
             task.UpdatedAt.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void Create_Should_SetNumber_When_ValidNumberProvided()
+        {
+            // Act
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-42", "Task 42", null, Priority.High, null, null, Guid.NewGuid());
+
+            // Assert
+            task.Number.Should().Be("DMS-42");
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void Create_Should_ThrowArgumentException_When_NumberIsNullOrWhiteSpace(string? invalidNumber)
+        {
+            // Act
+            var act = () => TaskItem.Create(Guid.NewGuid(), invalidNumber!, "Invalid Task", null, Priority.Medium, null, null, Guid.NewGuid());
+
+            // Assert
+            act.Should().Throw<ArgumentException>();
         }
     }
 }

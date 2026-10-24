@@ -18,6 +18,7 @@ namespace Messaging.Contracts
     /// <param name="CreatedByUserId">The unique identifier of the task requester (creator).</param>
     /// <param name="CreatedByEmail">The email address of the task requester.</param>
     /// <param name="CreatedByName">The display name or username of the task requester.</param>
+    /// <param name="TaskNumber">The sequential task number within its workspace. Optional for backward compatibility with messages published before task numbering existed.</param>
     public sealed record TaskTimeLogged(
         Guid TaskId,
         string TaskTitle,
@@ -31,5 +32,6 @@ namespace Messaging.Contracts
         string LoggedByUserName,
         Guid CreatedByUserId,
         string CreatedByEmail,
-        string CreatedByName);
+        string CreatedByName,
+        string? TaskNumber = null);
 }

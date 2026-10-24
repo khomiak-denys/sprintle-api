@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Workspaces.Domain.Tasks;
 using Workspaces.Domain.Workspaces;
@@ -24,6 +25,15 @@ namespace Workspaces.Infrastructure.Persistence.Configurations
                 .IsRequired();
 
             builder.HasIndex(t => t.WorkspaceId);
+
+            // Backend-generated, per-workspace formatted identifier (e.g. DMS-730). Never updated after insert.
+            builder.Property(t => t.Number)
+                .HasMaxLength(50)
+                .IsRequired()
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+
+            builder.HasIndex(t => new { t.WorkspaceId, t.Number })
+                .IsUnique();
 
             builder.HasOne<Workspace>()
                 .WithMany()

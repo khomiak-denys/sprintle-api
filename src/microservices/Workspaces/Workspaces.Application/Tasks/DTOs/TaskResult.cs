@@ -8,6 +8,7 @@ namespace Workspaces.Application.Tasks.DTOs
     /// </summary>
     /// <param name="Id">The unique identifier of the task.</param>
     /// <param name="WorkspaceId">The unique identifier of the workspace the task belongs to.</param>
+    /// <param name="Number">The task number (e.g. DMS-730), unique within its workspace.</param>
     /// <param name="Title">The title of the task.</param>
     /// <param name="Description">The optional description of the task.</param>
     /// <param name="Status">The current workflow status of the task.</param>
@@ -19,6 +20,7 @@ namespace Workspaces.Application.Tasks.DTOs
     public record TaskResult(
         Guid Id,
         Guid WorkspaceId,
+        string Number,
         string Title,
         string? Description,
         TaskStatus Status,

@@ -17,6 +17,7 @@ namespace Messaging.Contracts
     /// <param name="AssignedByName">The display name or username of the user who assigned the task.</param>
     /// <param name="Priority">The optional priority level name of the task.</param>
     /// <param name="Deadline">The optional deadline date and time for the task.</param>
+    /// <param name="TaskNumber">The sequential task number within its workspace. Optional for backward compatibility with messages published before task numbering existed.</param>
     public sealed record TaskAssigned(
         Guid TaskId,
         string TaskTitle,
@@ -29,5 +30,6 @@ namespace Messaging.Contracts
         Guid AssignedByUserId,
         string AssignedByName,
         string? Priority,
-        DateTime? Deadline);
+        DateTime? Deadline,
+        string? TaskNumber = null);
 }

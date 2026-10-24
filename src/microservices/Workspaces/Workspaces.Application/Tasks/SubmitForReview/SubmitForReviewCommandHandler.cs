@@ -81,7 +81,8 @@ namespace Workspaces.Application.Tasks.SubmitForReview
                     creatorName,
                     task.AssigneeId,
                     changer?.Email,
-                    changerName),
+                    changerName,
+                    TaskNumber: task.Number),
                 cancellationToken);
 
             return Result.Success();

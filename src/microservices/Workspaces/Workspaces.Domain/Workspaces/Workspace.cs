@@ -19,6 +19,13 @@ namespace Workspaces.Domain.Workspaces
         /// <summary>Gets the optional workspace description.</summary>
         public string? Description { get; private set; }
 
+        /// <summary>
+        /// Gets the last task number allocated in this workspace.
+        /// Incremented atomically at the database level when a new task is created; never modified by domain code.
+        /// </summary>
+        public int LastTaskNumber { get; private set; }
+
+
         /// <summary>Gets the workspace members (join entities).</summary>
         public ICollection<WorkspaceMember> Members { get; private set; } = new List<WorkspaceMember>();
 

@@ -15,6 +15,7 @@ namespace Workspaces.Domain.Tasks.Events
     /// <param name="AssigneeId">Optional assigned user identifier.</param>
     /// <param name="CreatedById">The creator user identifier.</param>
     /// <param name="InitialStatus">The initial status of the task.</param>
+    /// <param name="Number">The task number (e.g. DMS-730) within its workspace. Defaults to empty for events persisted before numbering was introduced.</param>
     public sealed record TaskCreatedDomainEvent(
         Guid TaskId,
         Guid WorkspaceId,
@@ -24,5 +25,6 @@ namespace Workspaces.Domain.Tasks.Events
         DateTime? Deadline,
         Guid? AssigneeId,
         Guid CreatedById,
-        TaskStatus InitialStatus) : DomainEventBase(TaskId);
+        TaskStatus InitialStatus,
+        string Number = "") : DomainEventBase(TaskId);
 }

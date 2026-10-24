@@ -104,5 +104,28 @@ namespace Workspaces.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .AnyAsync(w => w.Id == workspaceId && (w.OwnerId == userId || w.Members.Any(m => m.UserId == userId)), cancellationToken);
         }
+
+        /// <inheritdoc/>
+        public async Task<string?> ReserveNextTaskNumberAsync(Guid workspaceId, CancellationToken cancellationToken)
+        {
+            // Single atomic statement: increments LastTaskNumber under row lock and combines
+            // the first 3 alphanumeric uppercase characters of workspace Name with the sequence number.
+            // Materialized with ToListAsync (not FirstAsync) so EF does not wrap the UPDATE in a subquery.
+            var numbers = await _context.Database
+                .SqlQuery<string>($"""
+                    UPDATE "Workspaces"
+                    SET "LastTaskNumber" = "LastTaskNumber" + 1
+                    WHERE "Id" = {workspaceId}
+                    RETURNING (
+                        COALESCE(
+                            NULLIF(UPPER(SUBSTRING(REGEXP_REPLACE("Name", '[^a-zA-Z0-9]', '', 'g') FROM 1 FOR 3)), ''),
+                            'TSK'
+                        ) || '-' || "LastTaskNumber"::text
+                    ) AS "Value"
+                    """)
+                .ToListAsync(cancellationToken);
+
+            return numbers.Count == 0 ? null : numbers[0];
+        }
     }
 }

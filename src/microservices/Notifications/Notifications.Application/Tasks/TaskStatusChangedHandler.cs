@@ -47,7 +47,7 @@ namespace Notifications.Application.Tasks
                 return;
             }
 
-            var subject = TaskStatusChangedTemplate.GetSubject(@event.TaskTitle, @event.NewStatus, @event.WorkspaceName);
+            var subject = TaskStatusChangedTemplate.GetSubject(TaskDisplay.FormatTitle(@event.TaskNumber, @event.TaskTitle), @event.NewStatus, @event.WorkspaceName);
 
             foreach (var (userId, email, name) in recipients)
             {
@@ -63,7 +63,7 @@ namespace Notifications.Application.Tasks
                 }
 
                 var htmlBody = TaskStatusChangedTemplate.Render(
-                    @event.TaskTitle,
+                    TaskDisplay.FormatTitle(@event.TaskNumber, @event.TaskTitle),
                     @event.WorkspaceName,
                     @event.OldStatus,
                     @event.NewStatus,

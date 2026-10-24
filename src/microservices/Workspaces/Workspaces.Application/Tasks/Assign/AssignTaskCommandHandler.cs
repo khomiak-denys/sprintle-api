@@ -82,7 +82,8 @@ namespace Workspaces.Application.Tasks.Assign
                     command.RequestedById,
                     assignerName,
                     task.Priority.ToString(),
-                    task.Deadline),
+                    task.Deadline,
+                    TaskNumber: task.Number),
                 cancellationToken);
 
             return Result.Success();

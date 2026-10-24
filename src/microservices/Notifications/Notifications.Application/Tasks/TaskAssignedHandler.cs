@@ -50,7 +50,7 @@ namespace Notifications.Application.Tasks
             }
 
             var htmlBody = TaskAssignedTemplate.Render(
-                @event.TaskTitle,
+                TaskDisplay.FormatTitle(@event.TaskNumber, @event.TaskTitle),
                 @event.TaskDescription,
                 @event.WorkspaceName,
                 @event.AssignedByName,
@@ -58,7 +58,7 @@ namespace Notifications.Application.Tasks
                 @event.Deadline,
                 @event.AssigneeName);
 
-            var subject = TaskAssignedTemplate.GetSubject(@event.TaskTitle, @event.WorkspaceName);
+            var subject = TaskAssignedTemplate.GetSubject(TaskDisplay.FormatTitle(@event.TaskNumber, @event.TaskTitle), @event.WorkspaceName);
 
             await _emailSender.SendAsync(
                 @event.AssigneeEmail,

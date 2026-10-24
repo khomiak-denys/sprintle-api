@@ -85,7 +85,8 @@ namespace Workspaces.Application.Tasks.AddComment
                     creatorName,
                     task.AssigneeId,
                     assigneeEmail,
-                    assigneeName),
+                    assigneeName,
+                    TaskNumber: task.Number),
                 cancellationToken);
 
             return Result<Guid>.Success(comment.Id);
