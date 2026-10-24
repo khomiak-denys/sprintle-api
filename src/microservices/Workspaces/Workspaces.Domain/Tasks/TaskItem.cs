@@ -346,6 +346,7 @@ namespace Workspaces.Domain.Tasks
                     Number = e.Number;
                     Title = e.Title;
                     Description = e.Description;
+                    Type = e.Type;
                     Priority = e.Priority;
                     Deadline = e.Deadline;
                     AssigneeId = e.AssigneeId;

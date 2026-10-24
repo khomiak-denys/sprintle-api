@@ -16,9 +16,7 @@ namespace Workspaces.Infrastructure.Persistence.Migrations
                 type: "character varying(20)",
                 maxLength: 20,
                 nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.Sql("UPDATE public.\"Tasks\" SET \"Type\" = 'Task'");
+                defaultValue: "Task");
         }
 
         /// <inheritdoc />

@@ -5,10 +5,10 @@ namespace Workspaces.Domain.Tasks
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum TaskType
     {
-        Epic = 0,
-        Feature = 1,
-        UserStory = 2,
-        Bug = 3,
-        Task = 4
+        Task = 0,
+        Epic = 1,
+        Feature = 2,
+        UserStory = 3,
+        Bug = 4
     }
 }
