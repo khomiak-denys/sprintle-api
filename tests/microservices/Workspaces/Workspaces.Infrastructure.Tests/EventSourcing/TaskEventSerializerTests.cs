@@ -24,6 +24,7 @@ namespace Workspaces.Infrastructure.Tests.EventSourcing
                 workspaceId,
                 "Serialize Test",
                 "Description",
+                TaskType.Feature,
                 Priority.High,
                 DateTime.UtcNow.AddDays(3),
                 assigneeId,
@@ -43,6 +44,7 @@ namespace Workspaces.Infrastructure.Tests.EventSourcing
             deserialized.Number.Should().Be("DMS-42");
             deserialized.Title.Should().Be("Serialize Test");
             deserialized.Description.Should().Be("Description");
+            deserialized.Type.Should().Be(TaskType.Feature);
             deserialized.Priority.Should().Be(Priority.High);
             deserialized.AssigneeId.Should().Be(assigneeId);
             deserialized.CreatedById.Should().Be(creatorId);

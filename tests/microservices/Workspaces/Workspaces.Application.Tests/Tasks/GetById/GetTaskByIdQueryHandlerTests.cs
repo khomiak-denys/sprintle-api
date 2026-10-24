@@ -45,7 +45,7 @@ namespace Workspaces.Application.Tests.Tasks.GetById
             var assigneeId = Guid.NewGuid();
             var unauthorizedUserId = Guid.NewGuid();
 
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Title", "Description", Priority.Medium, null, assigneeId, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Title", "Description", TaskType.Task, Priority.Medium, null, assigneeId, creatorId);
             _taskRepository.TaskToReturn = task;
 
             var query = new GetTaskByIdQuery(task.Id, unauthorizedUserId, false);
@@ -66,7 +66,7 @@ namespace Workspaces.Application.Tests.Tasks.GetById
             var creatorId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
 
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Test Task", "Test Desc", Priority.High, DateTime.UtcNow.AddDays(3), assigneeId, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Test Task", "Test Desc", TaskType.Task, Priority.High, DateTime.UtcNow.AddDays(3), assigneeId, creatorId);
             _taskRepository.TaskToReturn = task;
             _workspaceRepository.Members.Add((task.WorkspaceId, creatorId));
 
@@ -101,7 +101,7 @@ namespace Workspaces.Application.Tests.Tasks.GetById
             var assigneeId = Guid.NewGuid();
             var memberId = Guid.NewGuid();
 
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Member Task", "Desc", Priority.Medium, null, assigneeId, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Member Task", "Desc", TaskType.Task, Priority.Medium, null, assigneeId, creatorId);
             _taskRepository.TaskToReturn = task;
             _workspaceRepository.Members.Add((task.WorkspaceId, memberId));
 
@@ -131,7 +131,7 @@ namespace Workspaces.Application.Tests.Tasks.GetById
             var creatorId = Guid.NewGuid();
             var adminId = Guid.NewGuid();
 
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Admin Task", null, Priority.Low, null, null, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Admin Task", null, TaskType.Task, Priority.Low, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
 
             var creatorResult = new UserResult(creatorId, "creator@test.com", "creator", "Creator");
@@ -154,7 +154,7 @@ namespace Workspaces.Application.Tests.Tasks.GetById
             // Arrange
             var creatorId = Guid.NewGuid();
 
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Todo Task", null, Priority.Medium, null, null, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Todo Task", null, TaskType.Task, Priority.Medium, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
             _workspaceRepository.Members.Add((task.WorkspaceId, creatorId));
 
