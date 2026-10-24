@@ -17,6 +17,13 @@ namespace Workspaces.Infrastructure.Persistence.Migrations
                 maxLength: 20,
                 nullable: false,
                 defaultValue: "Task");
+
+            migrationBuilder.Sql("""
+                UPDATE "TaskEvents" te
+                SET "Payload" = jsonb_set(te."Payload"::jsonb, '{Type}', to_jsonb('Task'::text))::text
+                FROM "Tasks" t
+                WHERE te."TaskId" = t."Id" AND te."EventType" = 'TaskCreatedDomainEvent';
+                """);
         }
 
         /// <inheritdoc />
