@@ -31,7 +31,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void AddComment_Should_AddCommentToCollectionAndModifyTask_When_CalledOnTask()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, null, Guid.NewGuid());
             var authorId = Guid.NewGuid();
             var content = "Domain comment";
 
@@ -50,7 +50,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void RemoveComment_Should_RemoveComment_When_RequesterIsAuthor()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, null, Guid.NewGuid());
             var authorId = Guid.NewGuid();
             var comment = task.AddComment(authorId, "To be removed");
 
@@ -66,7 +66,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void RemoveComment_Should_RemoveComment_When_RequesterIsAdmin()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, null, Guid.NewGuid());
             var authorId = Guid.NewGuid();
             var adminId = Guid.NewGuid();
             var comment = task.AddComment(authorId, "To be removed by admin");
@@ -83,7 +83,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void RemoveComment_Should_ReturnForbiddenError_When_RequesterIsNotAuthorNorAdmin()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, null, Guid.NewGuid());
             var authorId = Guid.NewGuid();
             var otherUserId = Guid.NewGuid();
             var comment = task.AddComment(authorId, "Comment text");
@@ -101,7 +101,7 @@ namespace Workspaces.Domain.Tests.Tasks
         public void RemoveComment_Should_ReturnNotFoundError_When_CommentDoesNotExist()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, null, Guid.NewGuid());
             var randomCommentId = Guid.NewGuid();
 
             // Act

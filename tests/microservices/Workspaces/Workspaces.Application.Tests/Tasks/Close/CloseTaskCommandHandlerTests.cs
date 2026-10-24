@@ -54,7 +54,7 @@ namespace Workspaces.Application.Tests.Tasks.Close
             var creatorId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
             var strangerId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, assigneeId, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, assigneeId, creatorId);
             task.SubmitForReview();
             task.Approve();
             _taskRepository.TaskToReturn = task;
@@ -78,7 +78,7 @@ namespace Workspaces.Application.Tests.Tasks.Close
             var creatorId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
             var workspace = Workspace.Create("Dev Workspace", creatorId, null);
-            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task 1", null, Priority.Medium, null, assigneeId, creatorId);
+            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task 1", null, TaskType.Task, Priority.Medium, null, assigneeId, creatorId);
             task.SubmitForReview();
             task.Approve();
             _taskRepository.TaskToReturn = task;
@@ -118,7 +118,7 @@ namespace Workspaces.Application.Tests.Tasks.Close
             var adminId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
             var workspace = Workspace.Create("Dev Workspace", creatorId, null);
-            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task Admin", null, Priority.High, null, assigneeId, creatorId);
+            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task Admin", null, TaskType.Task, Priority.High, null, assigneeId, creatorId);
             task.SubmitForReview();
             task.Approve();
             _taskRepository.TaskToReturn = task;
@@ -152,7 +152,7 @@ namespace Workspaces.Application.Tests.Tasks.Close
             var creatorId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
             var workspace = Workspace.Create("Dev Workspace", creatorId, null);
-            var task = TaskItem.Create(workspace.Id, "DMS-1", "In Progress Task", null, Priority.Medium, null, assigneeId, creatorId);
+            var task = TaskItem.Create(workspace.Id, "DMS-1", "In Progress Task", null, TaskType.Task, Priority.Medium, null, assigneeId, creatorId);
             _taskRepository.TaskToReturn = task;
 
             var command = new CloseTaskCommand(task.Id, creatorId, false);

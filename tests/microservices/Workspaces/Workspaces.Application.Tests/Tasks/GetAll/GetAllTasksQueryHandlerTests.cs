@@ -24,7 +24,7 @@ namespace Workspaces.Application.Tests.Tasks.GetAll
         public async Task Handle_Should_ReturnAllTasks_When_QueryHasDefaults()
         {
             var workspaceId = Guid.NewGuid();
-            var task = TaskItem.Create(workspaceId, "DMS-1", "Task 1", "Desc", Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(workspaceId, "DMS-1", "Task 1", "Desc", TaskType.Task, Priority.Medium, null, null, Guid.NewGuid());
             _repository.TasksToReturn.Add(task);
 
             var query = new GetAllTasksQuery();
@@ -121,7 +121,7 @@ namespace Workspaces.Application.Tests.Tasks.GetAll
         public async Task Handle_Should_PopulateAssignees_ViaBatch_When_UsersApiClientProvided()
         {
             var assigneeId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task with Assignee", "Desc", Priority.Low, null, assigneeId, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task with Assignee", "Desc", TaskType.Task, Priority.Low, null, assigneeId, Guid.NewGuid());
             _repository.TasksToReturn.Add(task);
 
             var fakeUsersClient = new FakeUsersApiClient();

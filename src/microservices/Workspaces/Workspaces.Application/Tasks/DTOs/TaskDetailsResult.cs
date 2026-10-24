@@ -27,6 +27,7 @@ namespace Workspaces.Application.Tasks.DTOs
         string Number,
         string Title,
         string? Description,
+        TaskType Type,
         TaskStatus Status,
         Priority Priority,
         DateTime? Deadline,
