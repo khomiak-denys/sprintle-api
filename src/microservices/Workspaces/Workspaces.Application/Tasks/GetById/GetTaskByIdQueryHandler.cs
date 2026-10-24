@@ -78,6 +78,7 @@ namespace Workspaces.Application.Tasks.GetById
                 task.Number,
                 task.Title,
                 task.Description,
+                task.Type,
                 task.Status,
                 task.Priority,
                 task.Deadline,

@@ -30,6 +30,9 @@ namespace Workspaces.Domain.Tasks
         /// <summary>Gets the optional description of the task.</summary>
         public string? Description { get; private set; }
 
+        /// <summary>Gets the type of the task.</summary>
+        public TaskType Type { get; private set; }
+
         /// <summary>Gets the current workflow status of the task.</summary>
         public TaskStatus Status { get; private set; }
 
@@ -62,6 +65,7 @@ namespace Workspaces.Domain.Tasks
             Guid workspaceId,
             string title,
             string? description,
+            TaskType type,
             Priority priority,
             DateTime? deadline,
             Guid? assigneeId,
@@ -70,6 +74,7 @@ namespace Workspaces.Domain.Tasks
             WorkspaceId = workspaceId;
             Title = title;
             Description = description;
+            Type = type;
             Priority = priority;
             Deadline = deadline;
             AssigneeId = assigneeId;
@@ -96,6 +101,7 @@ namespace Workspaces.Domain.Tasks
             string number,
             string title,
             string? description,
+            TaskType type,
             Priority priority,
             DateTime? deadline,
             Guid? assigneeId,
@@ -110,6 +116,7 @@ namespace Workspaces.Domain.Tasks
                 workspaceId,
                 title,
                 description,
+                type,
                 priority,
                 deadline,
                 assigneeId,

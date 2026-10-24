@@ -69,6 +69,7 @@ namespace Workspaces.Application.Tasks.Create
                 number,
                 command.Title,
                 command.Description,
+                command.Type,
                 command.Priority,
                 command.Deadline,
                 command.AssigneeId,
