@@ -10,6 +10,7 @@ namespace Workspaces.Domain.Tasks.Events
     /// <param name="WorkspaceId">The workspace identifier.</param>
     /// <param name="Title">The task title.</param>
     /// <param name="Description">Optional task description.</param>
+    /// <param name="Type">The type of the task.</param>
     /// <param name="Priority">The task priority level.</param>
     /// <param name="Deadline">Optional task deadline.</param>
     /// <param name="AssigneeId">Optional assigned user identifier.</param>
@@ -21,6 +22,7 @@ namespace Workspaces.Domain.Tasks.Events
         Guid WorkspaceId,
         string Title,
         string? Description,
+        TaskType Type,
         Priority Priority,
         DateTime? Deadline,
         Guid? AssigneeId,

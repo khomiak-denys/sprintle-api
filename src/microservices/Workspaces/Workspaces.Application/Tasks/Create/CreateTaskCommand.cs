@@ -1,6 +1,7 @@
 using DomainFramework.Results;
 using Messaging.Abstractions;
 using Priority = Workspaces.Domain.Tasks.Priority;
+using TaskType = Workspaces.Domain.Tasks.TaskType;
 
 namespace Workspaces.Application.Tasks.Create
 {
@@ -11,6 +12,7 @@ namespace Workspaces.Application.Tasks.Create
     /// <param name="CreatedById">Id of the authenticated user creating the task.</param>
     /// <param name="Title">Non-empty title (max 200 chars).</param>
     /// <param name="Description">Optional description.</param>
+    /// <param name="Type">Type of the task.</param>
     /// <param name="Priority">Initial priority level.</param>
     /// <param name="Deadline">Optional future deadline.</param>
     /// <param name="AssigneeId">Optional user id to assign the task to.</param>
@@ -21,6 +23,7 @@ namespace Workspaces.Application.Tasks.Create
         Guid CreatedById,
         string Title,
         string? Description,
+        TaskType Type,
         Priority Priority,
         DateTime? Deadline,
         Guid? AssigneeId,

@@ -11,6 +11,7 @@ namespace Workspaces.Application.Tasks.DTOs
     /// <param name="Number">The task number (e.g. DMS-730), unique within its workspace.</param>
     /// <param name="Title">The title of the task.</param>
     /// <param name="Description">The optional description of the task.</param>
+    /// <param name="Type">The type of the task.</param>
     /// <param name="Status">The current workflow status of the task.</param>
     /// <param name="Priority">The priority level of the task.</param>
     /// <param name="Deadline">The optional deadline date and time.</param>
@@ -23,6 +24,7 @@ namespace Workspaces.Application.Tasks.DTOs
         string Number,
         string Title,
         string? Description,
+        TaskType Type,
         TaskStatus Status,
         Priority Priority,
         DateTime? Deadline,

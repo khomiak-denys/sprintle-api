@@ -39,7 +39,7 @@ namespace Workspaces.Application.Tests.Tasks.ChangePriority
         {
             // Arrange
             var creatorId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Low, null, null, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Low, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
 
             var otherUserId = Guid.NewGuid();
@@ -60,7 +60,7 @@ namespace Workspaces.Application.Tests.Tasks.ChangePriority
         {
             // Arrange
             var creatorId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Low, null, null, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Low, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
 
             var command = new ChangeTaskPriorityCommand(task.Id, Priority.Critical, creatorId, false);
@@ -79,7 +79,7 @@ namespace Workspaces.Application.Tests.Tasks.ChangePriority
         {
             // Arrange
             var creatorId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Low, null, null, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Low, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
 
             var adminId = Guid.NewGuid();

@@ -54,7 +54,7 @@ namespace Workspaces.Application.Tests.Tasks.AddComment
             var creatorId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
             var unauthorizedUserId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, assigneeId, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, assigneeId, creatorId);
             _taskRepository.TaskToReturn = task;
 
             var command = new AddCommentCommand(task.Id, unauthorizedUserId, false, "Unauthorized comment");
@@ -75,7 +75,7 @@ namespace Workspaces.Application.Tests.Tasks.AddComment
             var creatorId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
             var workspace = Workspace.Create("Dev Workspace", creatorId, null);
-            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task", null, Priority.Medium, null, assigneeId, creatorId);
+            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, assigneeId, creatorId);
             _taskRepository.TaskToReturn = task;
             _workspaceRepository.Workspaces[workspace.Id] = workspace;
             _workspaceRepository.Members.Add((task.WorkspaceId, creatorId));
@@ -117,7 +117,7 @@ namespace Workspaces.Application.Tests.Tasks.AddComment
             var creatorId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
             var workspace = Workspace.Create("Dev Workspace", creatorId, null);
-            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task", null, Priority.Medium, null, assigneeId, creatorId);
+            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, assigneeId, creatorId);
             _taskRepository.TaskToReturn = task;
             _workspaceRepository.Workspaces[workspace.Id] = workspace;
             _workspaceRepository.Members.Add((task.WorkspaceId, assigneeId));
@@ -149,7 +149,7 @@ namespace Workspaces.Application.Tests.Tasks.AddComment
             var creatorId = Guid.NewGuid();
             var memberId = Guid.NewGuid();
             var workspace = Workspace.Create("Dev Workspace", creatorId, null);
-            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task", null, Priority.Medium, null, null, creatorId);
+            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
             _workspaceRepository.Workspaces[workspace.Id] = workspace;
             _workspaceRepository.Members.Add((task.WorkspaceId, memberId));
@@ -181,7 +181,7 @@ namespace Workspaces.Application.Tests.Tasks.AddComment
             var creatorId = Guid.NewGuid();
             var adminId = Guid.NewGuid();
             var workspace = Workspace.Create("Dev Workspace", creatorId, null);
-            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task", null, Priority.Medium, null, null, creatorId);
+            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, null, creatorId);
             _taskRepository.TaskToReturn = task;
             _workspaceRepository.Workspaces[workspace.Id] = workspace;
 

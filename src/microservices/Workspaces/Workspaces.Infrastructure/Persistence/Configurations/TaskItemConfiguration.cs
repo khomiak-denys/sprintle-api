@@ -47,6 +47,11 @@ namespace Workspaces.Infrastructure.Persistence.Configurations
             builder.Property(t => t.Description)
                 .HasMaxLength(2000);
 
+            builder.Property(t => t.Type)
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .IsRequired();
+
             builder.Property(t => t.Status)
                 .HasConversion<string>()
                 .HasMaxLength(20)

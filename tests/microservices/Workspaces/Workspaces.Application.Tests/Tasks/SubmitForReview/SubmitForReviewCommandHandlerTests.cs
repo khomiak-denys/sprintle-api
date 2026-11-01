@@ -54,7 +54,7 @@ namespace Workspaces.Application.Tests.Tasks.SubmitForReview
             var creatorId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
             var otherUserId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, assigneeId, creatorId);
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, assigneeId, creatorId);
             _taskRepository.TaskToReturn = task;
 
             var command = new SubmitForReviewCommand(task.Id, otherUserId);
@@ -76,7 +76,7 @@ namespace Workspaces.Application.Tests.Tasks.SubmitForReview
             var creatorId = Guid.NewGuid();
             var assigneeId = Guid.NewGuid();
             var workspace = Workspace.Create("Dev Workspace", creatorId, null);
-            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task 1", null, Priority.Medium, null, assigneeId, creatorId);
+            var task = TaskItem.Create(workspace.Id, "DMS-1", "Task 1", null, TaskType.Task, Priority.Medium, null, assigneeId, creatorId);
             _taskRepository.TaskToReturn = task;
 
             _workspaceRepository.Workspaces[workspace.Id] = workspace;

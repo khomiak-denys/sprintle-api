@@ -38,7 +38,7 @@ namespace Workspaces.Application.Tests.Tasks.DeleteComment
         public async Task Handle_Should_ReturnNotFound_When_CommentDoesNotExist()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, null, Guid.NewGuid());
             _taskRepository.TaskToReturn = task;
 
             var command = new DeleteCommentCommand(task.Id, Guid.NewGuid(), Guid.NewGuid(), false);
@@ -56,7 +56,7 @@ namespace Workspaces.Application.Tests.Tasks.DeleteComment
         public async Task Handle_Should_ReturnNotFound_When_CommentBelongsToDifferentTask()
         {
             // Arrange
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, null, Guid.NewGuid());
             _taskRepository.TaskToReturn = task;
 
             var otherTaskId = Guid.NewGuid();
@@ -80,7 +80,7 @@ namespace Workspaces.Application.Tests.Tasks.DeleteComment
             // Arrange
             var authorId = Guid.NewGuid();
             var otherUserId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, null, Guid.NewGuid());
             var comment = TaskComment.Create(task.Id, authorId, "Comment text");
 
             _taskRepository.TaskToReturn = task;
@@ -103,7 +103,7 @@ namespace Workspaces.Application.Tests.Tasks.DeleteComment
         {
             // Arrange
             var authorId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, null, Guid.NewGuid());
             var comment = TaskComment.Create(task.Id, authorId, "Comment text");
 
             _taskRepository.TaskToReturn = task;
@@ -126,7 +126,7 @@ namespace Workspaces.Application.Tests.Tasks.DeleteComment
             // Arrange
             var authorId = Guid.NewGuid();
             var adminId = Guid.NewGuid();
-            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, Priority.Medium, null, null, Guid.NewGuid());
+            var task = TaskItem.Create(Guid.NewGuid(), "DMS-1", "Task", null, TaskType.Task, Priority.Medium, null, null, Guid.NewGuid());
             var comment = TaskComment.Create(task.Id, authorId, "Comment text");
 
             _taskRepository.TaskToReturn = task;
