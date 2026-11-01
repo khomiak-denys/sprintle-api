@@ -141,16 +141,6 @@ namespace Workspaces.Domain.Tasks
         }
 
         /// <summary>
-        /// Moves the task to a different workspace.
-        /// </summary>
-        /// <param name="workspaceId">The target workspace identifier.</param>
-        public void MoveToWorkspace(Guid workspaceId)
-        {
-            WorkspaceId = workspaceId;
-            OnModify();
-        }
-
-        /// <summary>
         /// Updates mutable task fields.
         /// </summary>
         /// <param name="title">New title.</param>
